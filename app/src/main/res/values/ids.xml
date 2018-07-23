@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <item name="container" type="id" />
+    <item name="total_rub" type="id" />
+    <item name="total_usd" type="id" />
+    <item name="incomes_rub" type="id" />
+    <item name="incomes_usd" type="id" />
+    <item name="expenses_rub" type="id" />
+    <item name="expenses_usd" type="id" />
+
+</resources>

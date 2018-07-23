@@ -1,0 +1,12 @@
+<resources>
+    <string name="app_name">Трекер Финансов</string>
+    <string name="about">О приложении</string>
+    <string name="settings">Настройки</string>
+    <string name="expenses">- Расходы</string>
+    <string name="incomes">+ Доходы</string>
+    <string name="balance">= Баланс</string>
+    <string name="version">Версия</string>
+    <string name="build">Сборка</string>
+    <string name="usd_format">$%1$s</string>
+    <string name="rub_format">%1$s RUB</string>
+</resources>
