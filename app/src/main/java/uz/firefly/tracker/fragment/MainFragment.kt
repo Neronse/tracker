@@ -1,277 +1,258 @@
+@file:Suppress("EXPERIMENTAL_FEATURE_WARNING")
+
 package uz.firefly.tracker.fragment
 
+import android.animation.LayoutTransition
+import android.annotation.SuppressLint
+import android.content.SharedPreferences
+import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.Bundle
+import android.support.design.internal.BottomNavigationItemView
+import android.support.v4.app.Fragment
+import android.support.v4.content.ContextCompat
+import android.support.v4.content.res.ResourcesCompat
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ImageView
+import android.widget.LinearLayout
 import android.widget.TextView
 import org.jetbrains.anko.*
-import org.jetbrains.anko.appcompat.v7.themedToolbar
-import org.jetbrains.anko.support.v4.alert
+import org.jetbrains.anko.collections.forEachWithIndex
+import org.jetbrains.anko.design.bottomNavigationView
+import org.jetbrains.anko.design.floatingActionButton
+import org.jetbrains.anko.sdk15.coroutines.onClick
 import org.jetbrains.anko.support.v4.ctx
-import uz.firefly.tracker.BuildConfig
+import org.jetbrains.anko.support.v4.defaultSharedPreferences
 import uz.firefly.tracker.R
-import uz.firefly.tracker.util.BalanceManager
-import uz.firefly.tracker.util.Entry
-import uz.firefly.tracker.util.toUsd
+import uz.firefly.tracker.util.Repository
+import uz.firefly.tracker.util.usdRub
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.text.DecimalFormat
-import java.text.DecimalFormatSymbols
-import java.util.*
 
 class MainFragment : BaseFragment() {
 
-    lateinit var totalRub: TextView
-    lateinit var totalUsd: TextView
-
-    lateinit var incomesRub: TextView
-    lateinit var incomesUsd: TextView
-
-    lateinit var expensesRub: TextView
-    lateinit var expensesUsd: TextView
-
-    companion object {
-        val expenses = mutableListOf(Entry(Entry.Type.EXPENSE, BigDecimal(2028.23), Currency.getInstance("USD")))
-        val incomes = mutableListOf(Entry(Entry.Type.INCOME, BigDecimal(4033.87), Currency.getInstance("USD")))
-    }
+    private lateinit var contentView: MainFragmentView
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
-        return MainFragmentView().createView(AnkoContext.create(ctx, this))
+        contentView = MainFragmentView()
+        return contentView.createView(AnkoContext.create(ctx, this))
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        incomesRub = view.findViewById(R.id.incomes_rub)
-        incomesUsd = view.findViewById(R.id.incomes_usd)
+        if (savedInstanceState == null) {
+            setCurrentPage(R.id.balance)
+        }
+        setCurrentAccount(0) // TODO
+    }
 
-        expensesRub = view.findViewById(R.id.expenses_rub)
-        expensesUsd = view.findViewById(R.id.expenses_usd)
+    fun setCurrentAccount(accountId: Int) {
+        contentView.setCurrentAccount(accountId)
+    }
 
-        totalRub = view.findViewById(R.id.total_rub)
-        totalUsd = view.findViewById(R.id.total_usd)
+    private fun setContentFragment(fragment: Fragment) {
+        childFragmentManager.beginTransaction()
+                .replace(R.id.content, fragment)
+                .commit()
     }
 
     override fun onStart() {
         super.onStart()
-        update()
+        contentView.updateExchangeRate()
+        defaultSharedPreferences.registerOnSharedPreferenceChangeListener(listener)
     }
 
-    fun BigDecimal.format(): String {
-        val symbols = DecimalFormatSymbols(Locale.getDefault()).apply {
-            groupingSeparator = ' '
-            decimalSeparator = '.'
+    override fun onStop() {
+        super.onStop()
+        defaultSharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
+    }
+
+    val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> contentView.updateExchangeRate() }
+
+    fun setCurrentPage(pageId: Int) {
+        when (pageId) {
+            R.id.balance -> setContentFragment(DonutFragment())
+            R.id.history -> setContentFragment(HistoryFragment())
+            R.id.statistics -> setContentFragment(DummyFragment())
         }
-        return DecimalFormat("###,###.00", symbols).format(this)
     }
 
-    fun update() {
-        val exp = BalanceManager.total(expenses).abs()
-        val inc = BalanceManager.total(incomes)
-
-        val bal = inc.minus(exp)
-
-
-        incomesUsd.text = getString(R.string.usd_format, inc.toUsd().setScale(2, RoundingMode.HALF_EVEN).format())
-        incomesRub.text = getString(R.string.rub_format, inc.setScale(2, RoundingMode.HALF_EVEN).format())
-
-        expensesUsd.text = getString(R.string.usd_format, exp.toUsd().setScale(2, RoundingMode.HALF_EVEN).format())
-        expensesRub.text = getString(R.string.rub_format, exp.setScale(2, RoundingMode.HALF_EVEN).format())
-
-        totalUsd.text = getString(R.string.usd_format, bal.toUsd().setScale(2, RoundingMode.HALF_EVEN).format())
-        totalRub.text = getString(R.string.rub_format, bal.setScale(2, RoundingMode.HALF_EVEN).format())
+    fun showEditorDialog() {
+        requireFragmentManager().beginTransaction()
+                .replace(R.id.container, EditorFragment())
+                .addToBackStack(null)
+                .commit()
     }
 
-    fun showAbout() {
-        val version = getString(R.string.version)
-        val buildNumber = getString(R.string.build)
-        val message = """
-            $version: ${BuildConfig.VERSION_NAME}
-            $buildNumber: ${BuildConfig.VERSION_CODE}
-        """.trimIndent()
-        alert {
-            customView {
-                verticalLayout {
-                    lparams(wrapContent, wrapContent)
-                    padding = dip(16)
-                    gravity = Gravity.CENTER_HORIZONTAL
-                    imageView(R.mipmap.ic_launcher_round) {
-
-                    }
-
-                    textView(R.string.app_name) {
-                        textSize = 20.0f
-                        textColorResource = R.color.gray900
-                        gravity = Gravity.CENTER_HORIZONTAL
-                    }.lparams(wrapContent, wrapContent)
-
-                    textView(message) {
-                        textSize = 18.0f
-                        textColorResource = R.color.gray800
-                        gravity = Gravity.CENTER_HORIZONTAL
-                    }.lparams(wrapContent, wrapContent)
-                }
-
-            }
-
-        }.show()
+    @SuppressLint("PrivateResource")
+    fun showAccountSettings() {
+        requireFragmentManager().beginTransaction()
+                .setCustomAnimations(
+                        R.anim.abc_grow_fade_in_from_bottom,
+                        R.anim.abc_shrink_fade_out_from_bottom,
+                        R.anim.abc_popup_enter,
+                        R.anim.abc_popup_exit)
+                .replace(R.id.container, SettingsFragment())
+                .addToBackStack(null)
+                .commit()
     }
-
-    fun showSettings() {
-        fragmentManager
-                ?.beginTransaction()
-                ?.replace(R.id.container, SettingsFragment())
-                ?.addToBackStack(null)
-                ?.commit()
-    }
-
 }
 
-internal class MainFragmentView : AnkoComponent<MainFragment> {
+private class MainFragmentView : AnkoComponent<MainFragment> {
+
+    private lateinit var header: ViewGroup
+
+    private lateinit var exchangeRate: TextView
 
     override fun createView(ui: AnkoContext<MainFragment>) = with(ui) {
-        verticalLayout {
+        relativeLayout {
+            lparams(matchParent, matchParent)
 
-            val shadowColor = Color.argb(0x80, 0, 0, 0)
 
-            themedToolbar(R.style.ToolbarTheme) {
-                backgroundColorResource = R.color.white
 
-                textView(R.string.app_name) {
-                    textSize = 20.0f
-                    textColorResource = R.color.gray800
-                }.lparams {
-                    gravity = Gravity.CENTER_HORIZONTAL
-                }
+            linearLayout {
+                id = R.id.toolbar
 
-                inflateMenu(R.menu.main)
-                setOnMenuItemClickListener {
-                    when (it.itemId) {
-                        R.id.about -> {
-                            owner.showAbout()
-                            true
+                rightPadding = dip(12)
+
+                gravity = Gravity.CENTER_VERTICAL
+                horizontalScrollView {
+                    leftPadding = dip(12)
+                    clipToPadding = false
+                    isFillViewport = true
+                    isHorizontalScrollBarEnabled = false
+                    header = linearLayout {
+                        gravity = Gravity.CENTER_VERTICAL
+                        showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE or LinearLayout.SHOW_DIVIDER_END
+                        dividerDrawable = ContextCompat.getDrawable(ctx, R.drawable.header_divider)
+
+                        Repository.accounts.forEachWithIndex { index, account ->
+                            linearLayout {
+                                layoutTransition = LayoutTransition().apply {
+                                    setDuration(200)
+                                    setStartDelay(LayoutTransition.CHANGE_DISAPPEARING, 0)
+                                    setStartDelay(LayoutTransition.CHANGE_APPEARING, 0)
+                                    setStartDelay(LayoutTransition.APPEARING, 300)
+                                    disableTransitionType(LayoutTransition.CHANGE_DISAPPEARING)
+                                }
+                                gravity = Gravity.CENTER_VERTICAL
+
+                                val icon = imageView(account.icon) {
+                                    id = R.id.icon
+                                    padding = dip(4)
+                                }.lparams(dip(32), dip(32))
+
+                                setTag(R.id.icon, icon)
+
+                                val title = textView(account.title) {
+                                    id = R.id.title
+                                    singleLine = true
+                                    textSize = 16.5f
+                                    allCaps = true
+                                    typeface = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
+                                    textColorResource = R.color.primary
+                                }.lparams(wrapContent, wrapContent)
+
+                                setTag(R.id.title, title)
+                                onClick { owner.setCurrentAccount(index) }
+                            }.lparams(wrapContent, wrapContent)
                         }
-                        R.id.settings -> {
-                            owner.showSettings()
-                            true
-                        }
-                        else -> false
-                    }
-                }
+                    }.lparams(wrapContent, matchParent)
+                }.lparams(weight = 1.0f, height = matchParent)
+
+                imageView {
+                    imageResource = R.drawable.ic_account_circle_black_24dp
+                    padding = dip(4)
+
+                    onClick { owner.showAccountSettings() }
+                }.lparams(dip(32), dip(32))
+
+            }.lparams(matchParent, dip(56)) {
+                alignParentTop()
             }
 
             verticalLayout {
-                backgroundColorResource = R.color.lightRed
-                padding = dip(16)
 
-                textView(R.string.expenses) {
-                    allCaps = true
-                    textColorResource = R.color.gray50
-                    textSize = 16.0f
-                }
-                textView("$2028.23") {
-                    id = R.id.expenses_usd
-                    textColorResource = R.color.white
-                    textSize = 28.0f
-                    setShadowLayer(1.0f, 1.0f, 1.0f, shadowColor)
-                }
-
-                textView("128 735,81 RUB") {
-                    id = R.id.expenses_rub
-                    textColorResource = R.color.white
-                    textSize = 24.0f
-                    setShadowLayer(1.0f, 1.0f, 1.0f, shadowColor)
-                }
-
-            }.lparams(weight = 0.7f, width = matchParent)
-
-            verticalLayout {
-                backgroundColorResource = R.color.lightBlue
-                padding = dip(16)
-
-                textView(R.string.incomes) {
-                    allCaps = true
-                    textColorResource = R.color.gray50
-                    textSize = 16.0f
-                }
-                textView("$4033.87") {
-                    id = R.id.incomes_usd
-                    textColorResource = R.color.white
-                    textSize = 28.0f
-                    setShadowLayer(1.0f, 1.0f, 1.0f, shadowColor)
-                }
-
-                textView("256 037,80 RUB") {
-                    id = R.id.incomes_rub
-                    textColorResource = R.color.white
-                    textSize = 24.0f
-                    setShadowLayer(1.0f, 1.0f, 1.0f, shadowColor)
-                }
-
-            }.lparams(weight = 0.7f, width = matchParent)
-
-            verticalLayout {
-                padding = dip(16)
-
-                textView(R.string.balance) {
-                    allCaps = true
-                    textSize = 16.0f
-                    textColorResource = R.color.gray900
-
-                }
-
-                textView("$2005.64") {
-                    id = R.id.total_usd
-                    textColorResource = R.color.black
-                    textSize = 28.0f
-                }
-
-                textView("127 301,99 RUB") {
-                    id = R.id.total_rub
-                    textColorResource = R.color.black
-                    textSize = 24.0f
-                }
-
-            }.lparams(weight = 0.7f, width = matchParent)
-
-            linearLayout {
-                frameLayout {
-                    backgroundColorResource = R.color.red
-
-                    view {
-                        backgroundColorResource = R.color.white
-                    }.lparams(dip(56), dip(2), gravity = Gravity.CENTER)
-
-                    setOnClickListener {
-                        MainFragment.expenses.add(Entry(Entry.Type.EXPENSE,
-                                BigDecimal(Math.random() * 1000.0f),
-                                Currency.getInstance("USD"))
-                        )
-                        owner.update()
-                    }
-                }.lparams(weight = 1.0f, height = matchParent, width = 0)
+                exchangeRate = textView {
+                    id = R.id.title
+                    typeface = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
+                    horizontalPadding = dip(16)
+                    verticalPadding = dip(4)
+                    visibility = View.GONE
+                    backgroundColor = Color.parseColor("#EFEFEF")
+                }.lparams(matchParent, wrapContent)
 
                 frameLayout {
-                    backgroundColorResource = R.color.blue
 
-                    view {
-                        backgroundColorResource = R.color.white
-                    }.lparams(dip(2), dip(56), gravity = Gravity.CENTER)
+                    frameLayout {
+                        id = R.id.content
 
-                    view {
-                        backgroundColorResource = R.color.white
-                    }.lparams(dip(56), dip(2), gravity = Gravity.CENTER)
+                    }.lparams(matchParent, matchParent)
 
-                    setOnClickListener {
-                        MainFragment.incomes.add(Entry(Entry.Type.INCOME,
-                                BigDecimal(Math.random() * 1000.0f),
-                                Currency.getInstance("USD"))
-                        )
-                        owner.update()
+                    floatingActionButton {
+                        val color = ContextCompat.getColor(ctx, R.color.primary)
+                        imageResource = R.drawable.ic_add_black_24dp
+                        backgroundTintList = ColorStateList.valueOf(color)
+
+                        onClick { owner.showEditorDialog() }
+                    }.lparams(wrapContent, wrapContent) {
+                        gravity = Gravity.END or Gravity.BOTTOM
+                        margin = dip(16)
                     }
-                }.lparams(weight = 1.0f, height = matchParent, width = 0)
-            }.lparams(weight = 1.2f, width = matchParent)
+                }.lparams(width = matchParent, weight = 1.0f)
+
+                view {
+                    backgroundResource = R.drawable.bottom_shadow
+                }.lparams(matchParent, dip(2))
+
+                bottomNavigationView {
+                    inflateMenu(R.menu.navigation)
+                    setOnNavigationItemSelectedListener {
+                        owner.setCurrentPage(it.itemId)
+                        true
+                    }
+                    val typeface = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
+                    (getChildAt(0) as ViewGroup).forEachChild { child ->
+                        (child as BottomNavigationItemView).apply {
+                            find<TextView>(R.id.smallLabel).typeface = typeface
+                            find<TextView>(R.id.largeLabel).typeface = typeface
+                        }
+                    }
+                }.lparams(matchParent, wrapContent)
+
+            }.lparams(matchParent, wrapContent) {
+                alignParentBottom()
+                bottomOf(R.id.toolbar)
+            }
+
+            view {
+                backgroundResource = R.drawable.dropshadow
+            }.lparams(matchParent, dip(2)) {
+                bottomOf(R.id.toolbar)
+            }
+
+        }
+    }
+
+    fun updateExchangeRate() {
+        val rate = exchangeRate.context.defaultSharedPreferences.getString(usdRub, "")
+        if (rate.isNotEmpty()) {
+            exchangeRate.visibility = View.VISIBLE
+            exchangeRate.text = "1 USD = ${BigDecimal(rate).setScale(2, RoundingMode.HALF_EVEN)} RUB"
+        }
+    }
+
+    fun setCurrentAccount(id: Int) = header.forEachChildWithIndex { index, child ->
+        val icon = child.getTag(R.id.icon) as ImageView
+        val title = child.getTag(R.id.title) as TextView
+        if (index == id) {
+            icon.setColorFilter(ContextCompat.getColor(child.context, R.color.primary))
+            title.visibility = View.VISIBLE
+        } else {
+            icon.setColorFilter(ContextCompat.getColor(child.context, R.color.secondary))
+            title.visibility = View.GONE
         }
     }
 

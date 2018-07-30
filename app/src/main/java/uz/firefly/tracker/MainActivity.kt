@@ -2,8 +2,11 @@ package uz.firefly.tracker
 
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
+import androidx.work.*
 import org.jetbrains.anko.*
 import uz.firefly.tracker.fragment.MainFragment
+import uz.firefly.tracker.util.ExchangeRateWorker
+import java.util.concurrent.TimeUnit
 
 class MainActivity : AppCompatActivity() {
 
@@ -15,6 +18,16 @@ class MainActivity : AppCompatActivity() {
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction().add(R.id.container, MainFragment()).commit()
         }
+    }
+
+    override fun onStart() {
+        super.onStart()
+        WorkManager.getInstance().enqueue(OneTimeWorkRequest.Builder(ExchangeRateWorker::class.java)
+                .setBackoffCriteria(BackoffPolicy.LINEAR, 10, TimeUnit.SECONDS)
+                .setConstraints(Constraints.Builder()
+                        .setRequiredNetworkType(NetworkType.CONNECTED)
+                        .build())
+                .build())
     }
 
 }
