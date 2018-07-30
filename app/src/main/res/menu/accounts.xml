@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+    <item
+        android:id="@+id/total"
+        android:icon="@drawable/ic_attach_money_black_24dp"
+        android:title="@string/total"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/cash"
+        android:icon="@drawable/ic_account_balance_wallet_black_24dp"
+        android:title="@string/cash"
+        app:showAsAction="always|withText" />
+
+    <item
+        android:id="@+id/card"
+        android:icon="@drawable/ic_credit_card_black_24dp"
+        android:title="@string/card"
+        app:showAsAction="always" />
+
+    <item
+        android:id="@+id/web"
+        android:icon="@drawable/ic_web_black_24dp"
+        android:title="@string/yandex_money"
+        app:showAsAction="always" />
+
+</menu>

@@ -13,4 +13,11 @@
         <item name="android:textColorSecondary">@color/gray800</item>
     </style>
 
+    <style name="DialogWhenLarge" parent="BaseDialogWhenLarge"/>
+
+    <style name="BaseDialogWhenLarge" parent="Theme.AppCompat.Light.DialogWhenLarge">
+        <item name="android:windowBackground">@color/white</item>
+
+    </style>
+
 </resources>

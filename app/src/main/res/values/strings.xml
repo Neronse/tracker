@@ -2,11 +2,23 @@
     <string name="app_name">Трекер Финансов</string>
     <string name="about">О приложении</string>
     <string name="settings">Настройки</string>
-    <string name="expenses">- Расходы</string>
-    <string name="incomes">+ Доходы</string>
-    <string name="balance">= Баланс</string>
+    <string name="expenses">Расходы</string>
+    <string name="incomes">Доходы</string>
+    <string name="balance">Баланс</string>
     <string name="version">Версия</string>
     <string name="build">Сборка</string>
     <string name="usd_format">$%1$s</string>
     <string name="rub_format">%1$s RUB</string>
+    <string name="total">Все</string>
+    <string name="cash">Наличные</string>
+    <string name="card">Карта</string>
+    <string name="yandex_money">Yandex.Деньги</string>
+    <string name="add">Добавить</string>
+    <string name="amount">Сумма</string>
+    <string name="currency">Валюта</string>
+    <string name="category">Категория</string>
+    <string name="account">Счет</string>
+    <string name="done">Готово</string>
+    <string name="history">История</string>
+    <string name="statistics">Статистика</string>
 </resources>
