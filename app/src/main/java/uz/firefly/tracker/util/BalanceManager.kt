@@ -1,7 +1,7 @@
 package uz.firefly.tracker.util
 
-import uz.firefly.tracker.util.Entry.Type.EXPENSE
-import uz.firefly.tracker.util.Entry.Type.INCOME
+import uz.firefly.tracker.room.DataEntry
+
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -14,7 +14,8 @@ fun BigDecimal.toRub(exchangeRate: BigDecimal) = multiply(exchangeRate)
 
 object BalanceManager {
 
-    fun total(exchangeRate: BigDecimal, operations: Iterable<Entry>): BigDecimal =
+
+    fun total(exchangeRate: BigDecimal, operations: Iterable<DataEntry>): BigDecimal =
             operations.fold(BigDecimal(0)) { total, entry ->
                 val amount = when (entry.currency.currencyCode) {
                     usd -> entry.amount.toRub(exchangeRate)
@@ -22,8 +23,8 @@ object BalanceManager {
                     else -> throw IllegalArgumentException()
                 }
                 when (entry.type) {
-                    EXPENSE -> total.minus(amount)
-                    INCOME -> total.plus(amount)
+                    Type.EXPENSE -> total.minus(amount)
+                    Type.INCOME -> total.plus(amount)
                 }
             }
 }

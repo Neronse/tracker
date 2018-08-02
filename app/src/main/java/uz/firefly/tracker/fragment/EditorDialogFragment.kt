@@ -1,5 +1,6 @@
 package uz.firefly.tracker.fragment
 
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Build
 import android.os.Bundle
 import android.support.annotation.StringRes
@@ -20,7 +21,11 @@ import org.jetbrains.anko.design.textInputEditText
 import org.jetbrains.anko.design.textInputLayout
 import org.jetbrains.anko.sdk15.coroutines.textChangedListener
 import org.jetbrains.anko.support.v4.ctx
+import uz.firefly.tracker.MainViewModel
 import uz.firefly.tracker.R
+import uz.firefly.tracker.R.menu.accounts
+import uz.firefly.tracker.TrackerApp
+import uz.firefly.tracker.room.DataEntry
 import uz.firefly.tracker.util.*
 import java.math.BigDecimal
 import java.util.*
@@ -28,15 +33,16 @@ import java.util.*
 class EditorFragment : BaseFragment() {
 
     private lateinit var contentView: EditorDialogFragmentView
+    private val model by lazy { ViewModelProviders.of(this).get(MainViewModel::class.java) }
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         contentView = EditorDialogFragmentView()
         return contentView.createView(AnkoContext.create(ctx, this))
     }
 
-    fun createOperation(type: Entry.Type, amount: BigDecimal, currency: String, categoryId: Int, accountId: Int) {
-        val entry = Entry(type, amount, Currency.getInstance(currency), categoryId, accountId)
-        Repository.operations.add(entry)
+    fun createOperation(type: Type, amount: BigDecimal, currency: String, categoryId: Int, accountId: Int) {
+        model.addOperation(DataEntry( null, type, amount, Currency.getInstance(currency), categoryId, accountId))
     }
 
 }
@@ -83,13 +89,18 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                     when (it.itemId) {
                         R.id.done -> {
                             val type = when {
-                                typeView.checkedRadioButtonId == R.id.incomes -> Entry.Type.INCOME
-                                else -> Entry.Type.EXPENSE
+                                typeView.checkedRadioButtonId == R.id.incomes -> Type.INCOME
+                                else -> Type.EXPENSE
                             }
                             val amount = BigDecimal(amountView.text.toString())
                             val currency = currencySpinner.selectedItem.toString()
                             val categoryId = (categorySpinner.selectedItem as CategoryHolder).value.id
-                            val accountId = accountSpinner.selectedItemPosition - 1
+                            val accountId = when(accountSpinner.selectedItem.toString()){
+                                ctx.getString(R.string.cash) -> R.id.cash_account
+                                ctx.getString(R.string.card) -> R.id.card_account
+                                ctx.getString(R.string.yandex_money) -> R.id.yamoney_account
+                                else -> R.id.cash_account
+                            }
                             owner.createOperation(type, amount, currency, categoryId, accountId)
                             owner.requireFragmentManager().popBackStack()
                             true
@@ -157,7 +168,7 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
 
                     currencySpinner = spinner {
                         adapter = object : ArrayAdapter<String>(ctx, android.R.layout.simple_list_item_1,
-                                android.R.id.text1, arrayOf(usd, rub)) {
+                                android.R.id.text1, arrayOf(rub, usd)) {
                             override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
                                 return super.getView(position, convertView, parent).also {
                                     it.setPadding(padding, padding, padding, padding)
@@ -174,8 +185,8 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
 
                     accountSpinner = spinner {
                         adapter = object : ArrayAdapter<String>(ctx, android.R.layout.simple_list_item_1,
-                                android.R.id.text1, Repository.accounts
-                                .slice(1 until Repository.accounts.size)
+                                android.R.id.text1, TrackerApp.sRepository.accounts
+                                .slice(1 until TrackerApp.sRepository.accounts.size)
                                 .map { ctx.getString(it.title) }) {
                             override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
                                 return super.getView(position, convertView, parent).also {
@@ -204,8 +215,8 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
 
     fun updateCategorySpinner() {
         val categories = when (typeView.checkedRadioButtonId) {
-            R.id.incomes -> Repository.incomesCategories
-            R.id.expenses -> Repository.expensesCategories
+            R.id.incomes -> TrackerApp.sRepository.incomesCategories
+            R.id.expenses -> TrackerApp.sRepository.expensesCategories
             else -> throw RuntimeException("invalid checkedRadioButtonId")
         }
         categorySpinner.adapter = object : ArrayAdapter<CategoryHolder>(categorySpinner.context,
@@ -219,5 +230,4 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
             }
         }
     }
-
 }

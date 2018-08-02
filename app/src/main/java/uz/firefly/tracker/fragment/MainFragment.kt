@@ -4,6 +4,7 @@ package uz.firefly.tracker.fragment
 
 import android.animation.LayoutTransition
 import android.annotation.SuppressLint
+import android.arch.lifecycle.ViewModelProviders
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
 import android.graphics.Color
@@ -26,7 +27,9 @@ import org.jetbrains.anko.design.floatingActionButton
 import org.jetbrains.anko.sdk15.coroutines.onClick
 import org.jetbrains.anko.support.v4.ctx
 import org.jetbrains.anko.support.v4.defaultSharedPreferences
+import uz.firefly.tracker.MainViewModel
 import uz.firefly.tracker.R
+import uz.firefly.tracker.TrackerApp
 import uz.firefly.tracker.util.Repository
 import uz.firefly.tracker.util.usdRub
 import java.math.BigDecimal
@@ -35,6 +38,8 @@ import java.math.RoundingMode
 class MainFragment : BaseFragment() {
 
     private lateinit var contentView: MainFragmentView
+    val model by lazy {  ViewModelProviders.of(activity!!).get(MainViewModel::class.java)}
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         contentView = MainFragmentView()
@@ -45,11 +50,14 @@ class MainFragment : BaseFragment() {
         if (savedInstanceState == null) {
             setCurrentPage(R.id.balance)
         }
-        setCurrentAccount(0) // TODO
+        setCurrentAccount(0)
+        model.updateHistory(R.id.total_account)// TODO
     }
 
     fun setCurrentAccount(accountId: Int) {
         contentView.setCurrentAccount(accountId)
+
+
     }
 
     private fun setContentFragment(fragment: Fragment) {
@@ -75,7 +83,7 @@ class MainFragment : BaseFragment() {
         when (pageId) {
             R.id.balance -> setContentFragment(DonutFragment())
             R.id.history -> setContentFragment(HistoryFragment())
-            R.id.statistics -> setContentFragment(DummyFragment())
+           // R.id.statistics -> setContentFragment(DummyFragment())
         }
     }
 
@@ -128,7 +136,7 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
                         showDividers = LinearLayout.SHOW_DIVIDER_MIDDLE or LinearLayout.SHOW_DIVIDER_END
                         dividerDrawable = ContextCompat.getDrawable(ctx, R.drawable.header_divider)
 
-                        Repository.accounts.forEachWithIndex { index, account ->
+                        TrackerApp.sRepository.accounts.forEachWithIndex { index, account ->
                             linearLayout {
                                 layoutTransition = LayoutTransition().apply {
                                     setDuration(200)
@@ -156,7 +164,9 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
                                 }.lparams(wrapContent, wrapContent)
 
                                 setTag(R.id.title, title)
-                                onClick { owner.setCurrentAccount(index) }
+                                setTag(R.id.account, account.id)
+                                onClick { owner.setCurrentAccount(index)
+                                owner.model.updateHistory(it?.getTag(R.id.account) as Int)}
                             }.lparams(wrapContent, wrapContent)
                         }
                     }.lparams(wrapContent, matchParent)
