@@ -4,7 +4,7 @@
     <string name="settings">Настройки</string>
     <string name="expenses">Расходы</string>
     <string name="incomes">Доходы</string>
-    <string name="balance">Баланс</string>
+    <string name="balance">Баланс:</string>
     <string name="version">Версия</string>
     <string name="build">Сборка</string>
     <string name="usd_format">$%1$s</string>
@@ -39,4 +39,6 @@
     <string name="otherIncome">Другие доходы</string>
     <string name="USD">USD</string>
     <string name="RUB">RUB</string>
+    <string name="converted">Конвертированый:</string>
+    <string name="parametrs">Параметры</string>
 </resources>

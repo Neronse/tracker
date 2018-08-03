@@ -39,9 +39,6 @@ class HistoryFragment : BaseFragment() {
         model.history.observe(this, Observer {
             (list.adapter as HistoryFragmentView.OperationsAdapter).updateEntries(it)
         })
-        model.itemAdded.observe(this, Observer {
-            (list.adapter as HistoryFragmentView.OperationsAdapter).addEntry(it)
-        })
 
     }
 }
@@ -68,13 +65,6 @@ private class HistoryFragmentView : AnkoComponent<HistoryFragment> {
                 this.entries.clear()
                 this.entries.addAll(entries.reversed())
                 notifyDataSetChanged()
-            }
-        }
-
-        fun addEntry (entry: DataEntry?){
-            if (entry != null){
-                this.entries.add(0, entry)
-                notifyItemChanged(0)
             }
         }
 

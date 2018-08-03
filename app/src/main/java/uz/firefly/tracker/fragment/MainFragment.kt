@@ -4,6 +4,7 @@ package uz.firefly.tracker.fragment
 
 import android.animation.LayoutTransition
 import android.annotation.SuppressLint
+import android.arch.lifecycle.Observer
 import android.arch.lifecycle.ViewModelProviders
 import android.content.SharedPreferences
 import android.content.res.ColorStateList
@@ -13,10 +14,7 @@ import android.support.design.internal.BottomNavigationItemView
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.res.ResourcesCompat
-import android.view.Gravity
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -30,7 +28,8 @@ import org.jetbrains.anko.support.v4.defaultSharedPreferences
 import uz.firefly.tracker.MainViewModel
 import uz.firefly.tracker.R
 import uz.firefly.tracker.TrackerApp
-import uz.firefly.tracker.util.Repository
+import uz.firefly.tracker.util.toRub
+import uz.firefly.tracker.util.toUsd
 import uz.firefly.tracker.util.usdRub
 import java.math.BigDecimal
 import java.math.RoundingMode
@@ -38,7 +37,7 @@ import java.math.RoundingMode
 class MainFragment : BaseFragment() {
 
     private lateinit var contentView: MainFragmentView
-    val model by lazy {  ViewModelProviders.of(activity!!).get(MainViewModel::class.java)}
+    val model by lazy { ViewModelProviders.of(activity!!).get(MainViewModel::class.java) }
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -51,8 +50,26 @@ class MainFragment : BaseFragment() {
             setCurrentPage(R.id.balance)
         }
         setCurrentAccount(0)
-        model.updateHistory(R.id.total_account)// TODO
+        model.updateHistory(R.id.total_account)
+        model.updateBalance()
+        model.balance.observe(this, Observer {
+            if (it != null) {
+                val balance = "${getString(R.string.balance)} ${it.toPlainString()}"
+                val exchangeRate = (defaultSharedPreferences.getString(usdRub, "0"))
+                if (!exchangeRate.equals("0")) {
+                    val convertBalance = when (defaultSharedPreferences.getInt(currentCurrency, R.id.rub)) {
+                        R.id.rub -> it.toUsd(BigDecimal(exchangeRate).setScale(2, RoundingMode.HALF_EVEN))
+                        R.id.usd -> it.toRub(BigDecimal(exchangeRate).setScale(2, RoundingMode.HALF_EVEN))
+                        else -> throw RuntimeException("convert fail")
+                    }
+                    val convertString = "${getString(R.string.converted)} ${convertBalance.toPlainString()}"
+                    contentView.exchangeBalance.text = convertString
+                }
+                contentView.balance.text = balance
+            }
+        })
     }
+
 
     fun setCurrentAccount(accountId: Int) {
         contentView.setCurrentAccount(accountId)
@@ -83,7 +100,7 @@ class MainFragment : BaseFragment() {
         when (pageId) {
             R.id.balance -> setContentFragment(DonutFragment())
             R.id.history -> setContentFragment(HistoryFragment())
-           // R.id.statistics -> setContentFragment(DummyFragment())
+            // R.id.statistics -> setContentFragment(DummyFragment())
         }
     }
 
@@ -113,12 +130,13 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
     private lateinit var header: ViewGroup
 
     private lateinit var exchangeRate: TextView
+    lateinit var balance: TextView
+    lateinit var exchangeBalance: TextView
+    private lateinit var currencyView: TextView
 
     override fun createView(ui: AnkoContext<MainFragment>) = with(ui) {
         relativeLayout {
             lparams(matchParent, matchParent)
-
-
 
             linearLayout {
                 id = R.id.toolbar
@@ -165,8 +183,10 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
 
                                 setTag(R.id.title, title)
                                 setTag(R.id.account, account.id)
-                                onClick { owner.setCurrentAccount(index)
-                                owner.model.updateHistory(it?.getTag(R.id.account) as Int)}
+                                onClick {
+                                    owner.setCurrentAccount(index)
+                                    owner.model.updateHistory(it?.getTag(R.id.account) as Int)
+                                }
                             }.lparams(wrapContent, wrapContent)
                         }
                     }.lparams(wrapContent, matchParent)
@@ -193,6 +213,35 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
                     visibility = View.GONE
                     backgroundColor = Color.parseColor("#EFEFEF")
                 }.lparams(matchParent, wrapContent)
+
+                linearLayout {
+                    currencyView = textView {
+                        typeface = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
+                        horizontalPadding = dip(16)
+                        verticalPadding = dip(4)
+                        textSize = 16.5f
+                        text = when (ctx.defaultSharedPreferences.getInt(currentCurrency, R.id.rub)) {
+                            R.id.rub -> "RUB"
+                            R.id.usd -> "USD"
+                            else -> throw RuntimeException("set currency text fail")
+                        }
+                    }
+                    balance = textView {
+                        id = R.id.currentRubBalance
+                        typeface = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
+                        horizontalPadding = dip(4)
+                        verticalPadding = dip(4)
+                        textSize = 16.5f
+                    }
+
+                    exchangeBalance = textView {
+                        id = R.id.currentUsdBalance
+                        typeface = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
+                        horizontalPadding = dip(8)
+                        verticalPadding = dip(4)
+                        textSize = 16.5f
+                    }
+                }.lparams(wrapContent, wrapContent)
 
                 frameLayout {
 

@@ -9,22 +9,9 @@ import uz.firefly.tracker.room.AppDatabase
 import uz.firefly.tracker.room.DataEntry
 import java.util.*
 
-// TODO Репозиторий, поддержка локализации
 data class Category(val id: Int, val title: String)
 
-// TODO Репозиторий, динамические иконки
 data class Account(val icon: Int, val title: Int, val id: Int)
-
-/*   val operations = mutableListOf(
-           Entry(Type.EXPENSE, BigDecimal(2028.23), Currency.getInstance("USD"), 1, 1),
-           Entry(Type.INCOME, BigDecimal(4033.87), Currency.getInstance("USD"), -1, 1)
-   )*/
-
-/*data class Entry(val type: Type,
-                 val amount: BigDecimal,
-                 val currency: Currency,
-                 val categoryId: Int,
-                 val accountId: Int)*/
 
 enum class Type {
     EXPENSE, INCOME

@@ -11,10 +11,7 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.EditText
-import android.widget.RadioGroup
-import android.widget.Spinner
+import android.widget.*
 import org.jetbrains.anko.*
 import org.jetbrains.anko.appcompat.v7.themedToolbar
 import org.jetbrains.anko.design.textInputEditText
@@ -41,8 +38,9 @@ class EditorFragment : BaseFragment() {
         return contentView.createView(AnkoContext.create(ctx, this))
     }
 
-    fun createOperation(type: Type, amount: BigDecimal, currency: String, categoryId: Int, accountId: Int) {
-        model.addOperation(DataEntry( null, type, amount, Currency.getInstance(currency), categoryId, accountId))
+    fun createOperation(type: Type, amount: BigDecimal, currency: Currency, categoryId: Int, accountId: Int) {
+        model.addOperation(DataEntry( null, type, amount, currency, categoryId, accountId))
+        model.updateBalance()
     }
 
 }
@@ -93,7 +91,11 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                                 else -> Type.EXPENSE
                             }
                             val amount = BigDecimal(amountView.text.toString())
-                            val currency = currencySpinner.selectedItem.toString()
+                            val currency = when (ctx.defaultSharedPreferences.getInt(currentCurrency, R.id.rub)){
+                                R.id.rub -> Currency.getInstance(rub)
+                                R.id.usd -> Currency.getInstance(usd)
+                                else -> Currency.getInstance(rub)
+                            }
                             val categoryId = (categorySpinner.selectedItem as CategoryHolder).value.id
                             val accountId = when(accountSpinner.selectedItem.toString()){
                                 ctx.getString(R.string.cash) -> R.id.cash_account
@@ -163,9 +165,10 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                         horizontalPadding = padding
                     }
 
-
+                /*
                     headerTextView(R.string.currency)
 
+                    //Вдруг опять будет обмен и автор захочет это использовать
                     currencySpinner = spinner {
                         adapter = object : ArrayAdapter<String>(ctx, android.R.layout.simple_list_item_1,
                                 android.R.id.text1, arrayOf(rub, usd)) {
@@ -176,6 +179,7 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                             }
                         }
                     }.lparams(matchParent, wrapContent)
+                */
 
                     headerTextView(R.string.category)
 

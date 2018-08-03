@@ -26,5 +26,8 @@
     <item name="usd" type="id" />
     <item name="rub" type="id" />
     <item name="hate" type="id" />
+    <item name="pieChart" type="id" />
+    <item name="currentRubBalance" type="id" />
+    <item name="currentUsdBalance" type="id" />
 
 </resources>
