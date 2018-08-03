@@ -8,8 +8,8 @@
         android:id="@+id/history"
         android:icon="@drawable/ic_history_black_24dp"
         android:title="@string/history" />
-    <item
+<!--    <item
         android:id="@+id/statistics"
         android:icon="@drawable/ic_show_chart_black_24dp"
-        android:title="@string/statistics" />
+        android:title="@string/statistics" />-->
 </menu>

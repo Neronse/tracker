@@ -17,5 +17,17 @@
     <item name="expenses" type="id" />
     <item name="amount" type="id" />
     <item name="info" type="id" />
+    <item name="recycler" type="id" />
+    <item name="total_account" type="id" />
+    <item name="cash_account" type="id" />
+    <item name="card_account" type="id" />
+    <item name="yamoney_account" type="id" />
+    <item name="account" type="id"/>
+    <item name="usd" type="id" />
+    <item name="rub" type="id" />
+    <item name="hate" type="id" />
+    <item name="pieChart" type="id" />
+    <item name="currentRubBalance" type="id" />
+    <item name="currentUsdBalance" type="id" />
 
 </resources>
