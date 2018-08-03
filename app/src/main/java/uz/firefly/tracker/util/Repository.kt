@@ -18,12 +18,8 @@ enum class Type {
 }
 
 class Repository(context: Context) {
-    val database: AppDatabase
-    val appContext = context
-
-    init {
-        database = AppDatabase.getDatabaseInstance()
-    }
+    private val database: AppDatabase = AppDatabase.getDatabaseInstance()
+    private val appContext = context
 
     val expensesCategories = arrayOf(
             Category(0, context.getString(R.string.Home)),
@@ -55,14 +51,12 @@ class Repository(context: Context) {
     fun getDataEntries(): List<DataEntry> =
         database.operationDao().getAll(getCurrencyState())
 
-
+    fun getLiveBase(): LiveData<List<DataEntry>> = database.operationDao().getLiveBase(getCurrencyState())
 
     fun insertEntry(entry: DataEntry) = database.operationDao().insert(entry)
 
     fun getOperation(accountId: Int): List<DataEntry> =
             database.operationDao().getOperation(getCurrencyState(), accountId)
-
-
 
     private fun getCurrencyState(): Currency {
         val currentCurrencySetting = appContext.defaultSharedPreferences.getInt(currentCurrency, R.id.rub)

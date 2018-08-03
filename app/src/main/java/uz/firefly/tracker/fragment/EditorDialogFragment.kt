@@ -20,13 +20,21 @@ import org.jetbrains.anko.sdk15.coroutines.textChangedListener
 import org.jetbrains.anko.support.v4.ctx
 import uz.firefly.tracker.MainViewModel
 import uz.firefly.tracker.R
-import uz.firefly.tracker.R.menu.accounts
 import uz.firefly.tracker.TrackerApp
 import uz.firefly.tracker.room.DataEntry
-import uz.firefly.tracker.util.*
 import java.math.BigDecimal
 import java.util.*
+import android.widget.DatePicker
+import androidx.work.*
+import uz.firefly.tracker.util.*
+import java.util.concurrent.TimeUnit
 
+const val PERIODIC_ADD_TAG = "ADD_JOB"
+const val TYPE = "type"
+const val AMOUNT = "amount"
+const val CURRENCY = "currency"
+const val CATEGORY_ID = "categoryId"
+const val ACCOUNT_ID = "accountId"
 class EditorFragment : BaseFragment() {
 
     private lateinit var contentView: EditorDialogFragmentView
@@ -39,8 +47,7 @@ class EditorFragment : BaseFragment() {
     }
 
     fun createOperation(type: Type, amount: BigDecimal, currency: Currency, categoryId: Int, accountId: Int) {
-        model.addOperation(DataEntry( null, type, amount, currency, categoryId, accountId))
-        model.updateBalance()
+        model.addOperation(DataEntry(null, type, amount, currency, categoryId, accountId))
     }
 
 }
@@ -53,6 +60,7 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
 
     lateinit var typeView: RadioGroup
     lateinit var amountView: EditText
+    lateinit var checkBox: CheckBox
 
     class CategoryHolder(val value: Category) {
         override fun toString(): String = value.title
@@ -91,19 +99,35 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                                 else -> Type.EXPENSE
                             }
                             val amount = BigDecimal(amountView.text.toString())
-                            val currency = when (ctx.defaultSharedPreferences.getInt(currentCurrency, R.id.rub)){
+                            val currency = when (ctx.defaultSharedPreferences.getInt(currentCurrency, R.id.rub)) {
                                 R.id.rub -> Currency.getInstance(rub)
                                 R.id.usd -> Currency.getInstance(usd)
                                 else -> Currency.getInstance(rub)
                             }
                             val categoryId = (categorySpinner.selectedItem as CategoryHolder).value.id
-                            val accountId = when(accountSpinner.selectedItem.toString()){
+                            val accountId = when (accountSpinner.selectedItem.toString()) {
                                 ctx.getString(R.string.cash) -> R.id.cash_account
                                 ctx.getString(R.string.card) -> R.id.card_account
                                 ctx.getString(R.string.yandex_money) -> R.id.yamoney_account
                                 else -> R.id.cash_account
                             }
-                            owner.createOperation(type, amount, currency, categoryId, accountId)
+                            if (checkBox.isChecked) {
+                           val data: Data = Data.Builder()
+                                        .putString(TYPE, type.toString())
+                                        .putString(AMOUNT, amount.toPlainString())
+                                        .putString(CURRENCY, currency.currencyCode)
+                                        .putInt(CATEGORY_ID, categoryId)
+                                        .putInt(ACCOUNT_ID, accountId)
+                                        .build()
+                                val periodicWorkRequest = PeriodicWorkRequest.Builder(RegularOperationWorker::class.java,15,TimeUnit.MINUTES)//TODO: Изменить на 30 дней
+                                        .setInputData(data)
+                                        .addTag(PERIODIC_ADD_TAG)
+                                        .build()
+                                WorkManager.getInstance().enqueue( periodicWorkRequest)
+
+                            }else {
+                                owner.createOperation(type, amount, currency, categoryId, accountId)
+                            }
                             owner.requireFragmentManager().popBackStack()
                             true
                         }
@@ -165,21 +189,21 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                         horizontalPadding = padding
                     }
 
-                /*
-                    headerTextView(R.string.currency)
+                    /*
+                        headerTextView(R.string.currency)
 
-                    //Вдруг опять будет обмен и автор захочет это использовать
-                    currencySpinner = spinner {
-                        adapter = object : ArrayAdapter<String>(ctx, android.R.layout.simple_list_item_1,
-                                android.R.id.text1, arrayOf(rub, usd)) {
-                            override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-                                return super.getView(position, convertView, parent).also {
-                                    it.setPadding(padding, padding, padding, padding)
+                        //Вдруг опять будет обмен и автор захочет это использовать
+                        currencySpinner = spinner {
+                            adapter = object : ArrayAdapter<String>(ctx, android.R.layout.simple_list_item_1,
+                                    android.R.id.text1, arrayOf(rub, usd)) {
+                                override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+                                    return super.getView(position, convertView, parent).also {
+                                        it.setPadding(padding, padding, padding, padding)
+                                    }
                                 }
                             }
-                        }
-                    }.lparams(matchParent, wrapContent)
-                */
+                        }.lparams(matchParent, wrapContent)
+                    */
 
                     headerTextView(R.string.category)
 
@@ -199,6 +223,12 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                             }
                         }
                     }.lparams(matchParent, wrapContent)
+
+                    checkBox = checkBox {
+                        textResource = R.string.parametrs
+                        typeface = robotoCondensed
+                        isChecked = false
+                    }
                 }
 
 
@@ -234,4 +264,7 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
             }
         }
     }
+
+
+
 }

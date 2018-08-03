@@ -1,5 +1,6 @@
 package uz.firefly.tracker
 
+import android.arch.lifecycle.LiveData
 import android.arch.lifecycle.MutableLiveData
 import android.arch.lifecycle.ViewModel
 import android.graphics.Color
@@ -16,7 +17,6 @@ class MainViewModel : ViewModel() {
 
     val history: MutableLiveData<List<DataEntry>> = MutableLiveData()
     val pieData: MutableLiveData<PieDataSet> = MutableLiveData()
-    val balance: MutableLiveData<BigDecimal> = MutableLiveData()
 
     fun addOperation(entry: DataEntry) {
         launch(CommonPool) {
@@ -39,13 +39,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun updateBalance(){
-        launch(CommonPool) {
-            val hist = TrackerApp.sRepository.getDataEntries()
-            balance.postValue( BalanceManager.calculateBalance(hist))
-        }
-    }
-
+    fun getLiveBase(): LiveData<List<DataEntry>> = TrackerApp.sRepository.getLiveBase()
 
     private fun updatePieDataSet(list: List<DataEntry>) {
         val entries = mutableListOf<PieEntry>()

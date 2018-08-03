@@ -28,6 +28,7 @@ import org.jetbrains.anko.support.v4.defaultSharedPreferences
 import uz.firefly.tracker.MainViewModel
 import uz.firefly.tracker.R
 import uz.firefly.tracker.TrackerApp
+import uz.firefly.tracker.util.BalanceManager
 import uz.firefly.tracker.util.toRub
 import uz.firefly.tracker.util.toUsd
 import uz.firefly.tracker.util.usdRub
@@ -51,15 +52,15 @@ class MainFragment : BaseFragment() {
         }
         setCurrentAccount(0)
         model.updateHistory(R.id.total_account)
-        model.updateBalance()
-        model.balance.observe(this, Observer {
+        model.getLiveBase().observe(this, Observer {
             if (it != null) {
-                val balance = "${getString(R.string.balance)} ${it.toPlainString()}"
+                val total = BalanceManager.calculateBalance(it)
+                val balance = "${getString(R.string.balance)} ${total.toPlainString()}"
                 val exchangeRate = (defaultSharedPreferences.getString(usdRub, "0"))
                 if (!exchangeRate.equals("0")) {
                     val convertBalance = when (defaultSharedPreferences.getInt(currentCurrency, R.id.rub)) {
-                        R.id.rub -> it.toUsd(BigDecimal(exchangeRate).setScale(2, RoundingMode.HALF_EVEN))
-                        R.id.usd -> it.toRub(BigDecimal(exchangeRate).setScale(2, RoundingMode.HALF_EVEN))
+                        R.id.rub -> total.toUsd(BigDecimal(exchangeRate).setScale(2, RoundingMode.HALF_EVEN))
+                        R.id.usd -> total.toRub(BigDecimal(exchangeRate).setScale(2, RoundingMode.HALF_EVEN))
                         else -> throw RuntimeException("convert fail")
                     }
                     val convertString = "${getString(R.string.converted)} ${convertBalance.toPlainString()}"

@@ -39,6 +39,6 @@
     <string name="otherIncome">Другие доходы</string>
     <string name="USD">USD</string>
     <string name="RUB">RUB</string>
-    <string name="converted">Конвертированый:</string>
-    <string name="parametrs">Параметры</string>
+    <string name="converted">Конвертированный:</string>
+    <string name="parametrs">Ежемесечная операция</string>
 </resources>

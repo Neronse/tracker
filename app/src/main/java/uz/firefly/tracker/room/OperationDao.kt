@@ -12,6 +12,9 @@ interface OperationDao {
     @Query("SELECT * FROM entrys  WHERE currency = :currency ")
     fun getAll(currency: Currency): List<DataEntry>
 
+    @Query("SELECT * FROM entrys  WHERE currency = :currency ")
+    fun getLiveBase(currency: Currency): LiveData<List<DataEntry>>
+
     @Insert(onConflict = REPLACE)
     fun insert(dataEntry: DataEntry)
 

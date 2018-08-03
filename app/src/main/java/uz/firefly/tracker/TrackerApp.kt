@@ -8,12 +8,11 @@ class TrackerApp : Application() {
 
     override fun onCreate() {
         super.onCreate()
-        sInstance = this;
+        sInstance = this
     }
 
     companion object {
-        val SCALE_BD = 2
-        private lateinit var sInstance: TrackerApp;
+        private lateinit var sInstance: TrackerApp
 
         val sRepository: Repository by lazy {  Repository(TrackerApp.sInstance.applicationContext) }
 

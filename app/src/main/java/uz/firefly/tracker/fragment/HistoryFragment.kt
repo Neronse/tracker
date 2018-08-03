@@ -84,12 +84,19 @@ private class HistoryFragmentView : AnkoComponent<HistoryFragment> {
             val amount = itemView.find<TextView>(R.id.amount)
 
             fun bind(entry: DataEntry) {
-                // TODO WTF
-                title.text = entry.type.name
-                amount.text = entry.amount.setScale(2, RoundingMode.HALF_EVEN).toString()
-                subtitle.text = when (entry.type) {
-                    Type.INCOME -> TrackerApp.sRepository.incomesCategories[-entry.categoryId - 1].title
-                    Type.EXPENSE -> TrackerApp.sRepository.expensesCategories[entry.categoryId].title
+                when (entry.type) {
+                    Type.INCOME -> {
+                        title.text = TrackerApp.getApplication().applicationContext.getString(R.string.incomes)
+                        val count = "+${entry.amount.setScale(2, RoundingMode.HALF_EVEN)}"
+                        amount.text = count
+                        subtitle.text = TrackerApp.sRepository.incomesCategories[-entry.categoryId - 1].title
+                    }
+                    Type.EXPENSE -> {
+                        title.text = TrackerApp.getApplication().applicationContext.getString(R.string.expenses)
+                        val count = "-${entry.amount.setScale(2, RoundingMode.HALF_EVEN)}"
+                        amount.text = count
+                        subtitle.text = TrackerApp.sRepository.expensesCategories[entry.categoryId].title
+                    }
                 }
             }
         }
