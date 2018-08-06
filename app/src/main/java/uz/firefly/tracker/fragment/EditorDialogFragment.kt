@@ -12,6 +12,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.*
+import androidx.work.Data
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import org.jetbrains.anko.*
 import org.jetbrains.anko.appcompat.v7.themedToolbar
 import org.jetbrains.anko.design.textInputEditText
@@ -22,11 +25,9 @@ import uz.firefly.tracker.MainViewModel
 import uz.firefly.tracker.R
 import uz.firefly.tracker.TrackerApp
 import uz.firefly.tracker.room.DataEntry
+import uz.firefly.tracker.util.*
 import java.math.BigDecimal
 import java.util.*
-import android.widget.DatePicker
-import androidx.work.*
-import uz.firefly.tracker.util.*
 import java.util.concurrent.TimeUnit
 
 const val PERIODIC_ADD_TAG = "ADD_JOB"
@@ -35,6 +36,7 @@ const val AMOUNT = "amount"
 const val CURRENCY = "currency"
 const val CATEGORY_ID = "categoryId"
 const val ACCOUNT_ID = "accountId"
+
 class EditorFragment : BaseFragment() {
 
     private lateinit var contentView: EditorDialogFragmentView
@@ -112,20 +114,20 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                                 else -> R.id.cash_account
                             }
                             if (checkBox.isChecked) {
-                           val data: Data = Data.Builder()
+                                val data: Data = Data.Builder()
                                         .putString(TYPE, type.toString())
                                         .putString(AMOUNT, amount.toPlainString())
                                         .putString(CURRENCY, currency.currencyCode)
                                         .putInt(CATEGORY_ID, categoryId)
                                         .putInt(ACCOUNT_ID, accountId)
                                         .build()
-                                val periodicWorkRequest = PeriodicWorkRequest.Builder(RegularOperationWorker::class.java,15,TimeUnit.MINUTES)//TODO: Изменить на 30 дней
+                                val periodicWorkRequest = PeriodicWorkRequest.Builder(RegularOperationWorker::class.java, 30, TimeUnit.DAYS)
                                         .setInputData(data)
                                         .addTag(PERIODIC_ADD_TAG)
                                         .build()
-                                WorkManager.getInstance().enqueue( periodicWorkRequest)
+                                WorkManager.getInstance().enqueue(periodicWorkRequest)
 
-                            }else {
+                            } else {
                                 owner.createOperation(type, amount, currency, categoryId, accountId)
                             }
                             owner.requireFragmentManager().popBackStack()
@@ -264,7 +266,6 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
             }
         }
     }
-
 
 
 }
