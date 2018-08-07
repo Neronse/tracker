@@ -29,5 +29,8 @@
     <item name="pieChart" type="id" />
     <item name="currentRubBalance" type="id" />
     <item name="currentUsdBalance" type="id" />
+    <item name="date" type="id" />
+    <item name="datePickBtn" type="id" />
+    <item name="dateTextHist" type="id" />
 
 </resources>

@@ -41,4 +41,5 @@
     <string name="RUB">RUB</string>
     <string name="converted">Конвертированный:</string>
     <string name="parametrs">Ежемесечная операция</string>
+    <string name="chooseDate">Выбрать дату</string>
 </resources>

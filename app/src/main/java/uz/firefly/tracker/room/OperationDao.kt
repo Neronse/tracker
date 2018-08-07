@@ -2,6 +2,7 @@ package uz.firefly.tracker.room
 
 import android.arch.lifecycle.LiveData
 import android.arch.persistence.room.Dao
+import android.arch.persistence.room.Delete
 import android.arch.persistence.room.Insert
 import android.arch.persistence.room.OnConflictStrategy.REPLACE
 import android.arch.persistence.room.Query
@@ -23,5 +24,11 @@ interface OperationDao {
 
     @Query("SELECT * FROM entrys WHERE currency = :currency AND accountid = :accountid")
     fun getOperation(currency: Currency, accountid:Int): List<DataEntry>
+
+    @Query("SELECT * FROM entrys WHERE date BETWEEN :from and :to")
+    fun getOperationBetweenDate(from:Date, to:Date): LiveData<List<DataEntry>>
+
+    @Delete
+    fun deleteItem(dataEntry: DataEntry)
 
 }

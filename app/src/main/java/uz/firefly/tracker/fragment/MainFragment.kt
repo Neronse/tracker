@@ -35,6 +35,7 @@ import uz.firefly.tracker.util.usdRub
 import java.math.BigDecimal
 import java.math.RoundingMode
 
+const val EMPTY_EXHANGE_RATE = "0"
 class MainFragment : BaseFragment() {
 
     private lateinit var contentView: MainFragmentView
@@ -56,8 +57,8 @@ class MainFragment : BaseFragment() {
             if (it != null) {
                 val total = BalanceManager.calculateBalance(it)
                 val balance = "${getString(R.string.balance)} ${total.toPlainString()}"
-                val exchangeRate = (defaultSharedPreferences.getString(usdRub, "0"))
-                if (!exchangeRate.equals("0")) {
+                val exchangeRate = (defaultSharedPreferences.getString(usdRub, EMPTY_EXHANGE_RATE))
+                if (exchangeRate != EMPTY_EXHANGE_RATE) {
                     val convertBalance = when (defaultSharedPreferences.getInt(currentCurrency, R.id.rub)) {
                         R.id.rub -> total.toUsd(BigDecimal(exchangeRate).setScale(2, RoundingMode.HALF_EVEN))
                         R.id.usd -> total.toRub(BigDecimal(exchangeRate).setScale(2, RoundingMode.HALF_EVEN))
@@ -95,13 +96,14 @@ class MainFragment : BaseFragment() {
         defaultSharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
     }
 
-    val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> contentView.updateExchangeRate() }
+    private val listener =
+            SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> contentView.updateExchangeRate() }
 
     fun setCurrentPage(pageId: Int) {
         when (pageId) {
             R.id.balance -> setContentFragment(DonutFragment())
             R.id.history -> setContentFragment(HistoryFragment())
-            // R.id.statistics -> setContentFragment(DummyFragment())
+            R.id.statistics -> setContentFragment(DummyFragment())
         }
     }
 

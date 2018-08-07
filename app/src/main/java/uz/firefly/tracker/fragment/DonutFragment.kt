@@ -16,7 +16,7 @@ import uz.firefly.tracker.R
 
 class DonutFragment : BaseFragment() {
     private lateinit var contentView: DonutFragmentView
-    val model by lazy { ViewModelProviders.of(activity!!).get(MainViewModel::class.java) }
+    private val model by lazy { ViewModelProviders.of(activity!!).get(MainViewModel::class.java) }
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         contentView = DonutFragmentView()

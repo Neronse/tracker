@@ -11,7 +11,6 @@ import kotlinx.coroutines.experimental.launch
 import uz.firefly.tracker.room.DataEntry
 import uz.firefly.tracker.util.BalanceManager
 import uz.firefly.tracker.util.Type
-import java.math.BigDecimal
 
 class MainViewModel : ViewModel() {
 
@@ -30,7 +29,7 @@ class MainViewModel : ViewModel() {
                 val hist = TrackerApp.sRepository.getDataEntries()
                 history.postValue(hist)
                 updatePieDataSet(hist)
-           }
+            }
             else -> launch(CommonPool) {
                 val hist = TrackerApp.sRepository.getOperation(accountId)
                 history.postValue(hist)
@@ -52,14 +51,15 @@ class MainViewModel : ViewModel() {
             }
         }
         val materialColors = intArrayOf(
-                rgb("#2ecc71"),
-                rgb("#f1c40f"),
-                rgb("#e74c3c"),
-                rgb("#3498db"),
-                rgb("#FF5722"),
-                rgb("#607D8B"),
-                rgb("#7B1FA2"),
-                rgb("#E91E63"))
+                Color.parseColor("#2ECC71"),
+                Color.parseColor("#F1C40F"),
+                Color.parseColor("#E74C3C"),
+                Color.parseColor("#3498DB"),
+                Color.parseColor("#FF5722"),
+                Color.parseColor("#607D8B"),
+                Color.parseColor("#7B1FA2"),
+                Color.parseColor("#E91E63")
+        )
         val pieDataSet = PieDataSet(entries, "").apply {
             valueTextSize = 10f
             colors = materialColors.asList()
@@ -68,12 +68,10 @@ class MainViewModel : ViewModel() {
         pieData.postValue(pieDataSet)
     }
 
-    private fun rgb(hex: String): Int {
-        val color = java.lang.Long.parseLong(hex.replace("#", ""), 16).toInt()
-        val r = color shr 16 and 0xFF
-        val g = color shr 8 and 0xFF
-        val b = color shr 0 and 0xFF
-        return Color.rgb(r, g, b)
+    fun deleteItem(dataEntry: DataEntry) {
+        launch(CommonPool){
+            TrackerApp.sRepository.deleteItem(dataEntry)
+            updateHistory(dataEntry.accountId)
+        }
     }
-
 }

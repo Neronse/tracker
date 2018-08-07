@@ -27,10 +27,10 @@ import uz.firefly.tracker.TrackerApp
 import uz.firefly.tracker.room.DataEntry
 import uz.firefly.tracker.util.*
 import java.math.BigDecimal
+import java.text.DateFormat
 import java.util.*
 import java.util.concurrent.TimeUnit
 
-const val PERIODIC_ADD_TAG = "ADD_JOB"
 const val TYPE = "type"
 const val AMOUNT = "amount"
 const val CURRENCY = "currency"
@@ -48,8 +48,8 @@ class EditorFragment : BaseFragment() {
         return contentView.createView(AnkoContext.create(ctx, this))
     }
 
-    fun createOperation(type: Type, amount: BigDecimal, currency: Currency, categoryId: Int, accountId: Int) {
-        model.addOperation(DataEntry(null, type, amount, currency, categoryId, accountId))
+    fun createOperation(type: Type, amount: BigDecimal, currency: Currency, categoryId: Int, accountId: Int, date:Date) {
+        model.addOperation(DataEntry(null, type, amount, currency, categoryId, accountId, date))
     }
 
 }
@@ -58,11 +58,11 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
 
     lateinit var accountSpinner: Spinner
     lateinit var categorySpinner: Spinner
-    lateinit var currencySpinner: Spinner
 
     lateinit var typeView: RadioGroup
     lateinit var amountView: EditText
     lateinit var checkBox: CheckBox
+    lateinit var dateTextView: TextView
 
     class CategoryHolder(val value: Category) {
         override fun toString(): String = value.title
@@ -113,6 +113,7 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                                 ctx.getString(R.string.yandex_money) -> R.id.yamoney_account
                                 else -> R.id.cash_account
                             }
+                            val date = DateFormat.getDateInstance().parse(dateTextView.text.toString())
                             if (checkBox.isChecked) {
                                 val data: Data = Data.Builder()
                                         .putString(TYPE, type.toString())
@@ -123,12 +124,11 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                                         .build()
                                 val periodicWorkRequest = PeriodicWorkRequest.Builder(RegularOperationWorker::class.java, 30, TimeUnit.DAYS)
                                         .setInputData(data)
-                                        .addTag(PERIODIC_ADD_TAG)
                                         .build()
                                 WorkManager.getInstance().enqueue(periodicWorkRequest)
 
                             } else {
-                                owner.createOperation(type, amount, currency, categoryId, accountId)
+                                owner.createOperation(type, amount, currency, categoryId, accountId, date)
                             }
                             owner.requireFragmentManager().popBackStack()
                             true
@@ -191,22 +191,6 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                         horizontalPadding = padding
                     }
 
-                    /*
-                        headerTextView(R.string.currency)
-
-                        //Вдруг опять будет обмен и автор захочет это использовать
-                        currencySpinner = spinner {
-                            adapter = object : ArrayAdapter<String>(ctx, android.R.layout.simple_list_item_1,
-                                    android.R.id.text1, arrayOf(rub, usd)) {
-                                override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-                                    return super.getView(position, convertView, parent).also {
-                                        it.setPadding(padding, padding, padding, padding)
-                                    }
-                                }
-                            }
-                        }.lparams(matchParent, wrapContent)
-                    */
-
                     headerTextView(R.string.category)
 
                     categorySpinner = spinner().lparams(matchParent, wrapContent)
@@ -225,6 +209,44 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                             }
                         }
                     }.lparams(matchParent, wrapContent)
+
+                    relativeLayout{
+                        dateTextView = textView {
+                            id = R.id.date
+                            text = DateFormat.getDateInstance().format(Date())
+                            textAppearance = android.R.style.TextAppearance_Holo_Widget_TextView
+                            typeface = robotoCondensed
+
+                        }.lparams(wrapContent, wrapContent){
+                            centerInParent()
+                        }
+                        button{
+                            textResource = R.string.chooseDate
+                            id = R.id.datePickBtn
+
+                            setOnClickListener {
+                                alert {
+                                    isCancelable = false
+                                    lateinit var datePicker: DatePicker
+                                    customView {
+                                        verticalLayout {
+                                            datePicker = datePicker {
+                                                maxDate = System.currentTimeMillis()
+                                            }
+                                        }
+                                    }
+                                    yesButton {
+                                        setNewDate(datePicker)
+                                    }
+                                    noButton { }
+                                }.show()
+                            }
+                        }.lparams(wrapContent, wrapContent){
+                            alignParentRight()
+                        }
+
+                    }.lparams(matchParent, wrapContent)
+
 
                     checkBox = checkBox {
                         textResource = R.string.parametrs
@@ -267,5 +289,9 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
         }
     }
 
-
+    fun setNewDate(datePicker:DatePicker){
+        val calendar = Calendar.getInstance()
+        calendar.set(datePicker.year, datePicker.month, datePicker.dayOfMonth)
+        dateTextView.text = DateFormat.getDateInstance().format(calendar.time)
+    }
 }

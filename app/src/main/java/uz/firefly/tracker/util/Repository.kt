@@ -55,8 +55,13 @@ class Repository(context: Context) {
 
     fun insertEntry(entry: DataEntry) = database.operationDao().insert(entry)
 
+    fun  getOperationBetweenDate(from:Date, to:Date): LiveData<List<DataEntry>> =
+            database.operationDao().getOperationBetweenDate(from,to)
+
     fun getOperation(accountId: Int): List<DataEntry> =
             database.operationDao().getOperation(getCurrencyState(), accountId)
+
+    fun deleteItem(dataEntry: DataEntry) = database.operationDao().deleteItem(dataEntry)
 
     private fun getCurrencyState(): Currency {
         val currentCurrencySetting = appContext.defaultSharedPreferences.getInt(currentCurrency, R.id.rub)

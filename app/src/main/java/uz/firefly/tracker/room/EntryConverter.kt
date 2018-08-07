@@ -29,4 +29,10 @@ class EntryConverter {
 
     @TypeConverter
     fun toType(type: String): Type = Type.valueOf(type)
+
+    @TypeConverter
+    fun fromDate(date:Date): Long = date.time
+
+    @TypeConverter
+    fun toDate(date: Long):Date = Date(date)
 }
