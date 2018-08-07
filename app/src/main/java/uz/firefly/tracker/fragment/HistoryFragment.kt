@@ -1,5 +1,7 @@
 package uz.firefly.tracker.fragment
 
+import android.arch.lifecycle.Observer
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Bundle
 import android.support.v7.widget.LinearLayoutManager
 import android.support.v7.widget.RecyclerView
@@ -11,19 +13,33 @@ import android.widget.TextView
 import org.jetbrains.anko.*
 import org.jetbrains.anko.recyclerview.v7.recyclerView
 import org.jetbrains.anko.support.v4.ctx
+import org.jetbrains.anko.support.v4.find
+import uz.firefly.tracker.MainViewModel
 import uz.firefly.tracker.R
-import uz.firefly.tracker.util.Entry
-import uz.firefly.tracker.util.Repository
+import uz.firefly.tracker.TrackerApp
+import uz.firefly.tracker.room.DataEntry
+import uz.firefly.tracker.util.Type
 import java.math.RoundingMode
 
 class HistoryFragment : BaseFragment() {
 
     private lateinit var contentView: HistoryFragmentView
+    private lateinit var model: MainViewModel
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         contentView = HistoryFragmentView()
         return contentView.createView(AnkoContext.create(ctx, this))
+    }
+
+    override fun onActivityCreated(savedInstanceState: Bundle?) {
+        super.onActivityCreated(savedInstanceState)
+        model = ViewModelProviders.of(activity!!).get(MainViewModel::class.java)
+        val list = find<RecyclerView>(R.id.recycler)
+        model.history.observe(this, Observer {
+            (list.adapter as HistoryFragmentView.OperationsAdapter).updateEntries(it)
+        })
+
     }
 }
 
@@ -31,16 +47,26 @@ private class HistoryFragmentView : AnkoComponent<HistoryFragment> {
 
     override fun createView(ui: AnkoContext<HistoryFragment>) = with(ui) {
         recyclerView {
+            id = R.id.recycler
             lparams(matchParent, matchParent)
             layoutManager = LinearLayoutManager(ctx)
-            adapter = OperationsAdapter(Repository.operations.reversed())
+            adapter = OperationsAdapter(mutableListOf())
         }
     }
+
 
     fun resetAdapter() {
     }
 
-    class OperationsAdapter(val entries: List<Entry>) : RecyclerView.Adapter<OperationsAdapter.ViewHolder>() {
+    class OperationsAdapter(val entries: MutableList<DataEntry>) : RecyclerView.Adapter<OperationsAdapter.ViewHolder>() {
+
+        fun updateEntries(entries: List<DataEntry>?) {
+            if (entries != null) {
+                this.entries.clear()
+                this.entries.addAll(entries.reversed())
+                notifyDataSetChanged()
+            }
+        }
 
         override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder =
                 ViewHolder(OperationView().createView(AnkoContext.create(parent.context, parent)))
@@ -57,13 +83,20 @@ private class HistoryFragmentView : AnkoComponent<HistoryFragment> {
             val title = itemView.find<TextView>(R.id.title)
             val amount = itemView.find<TextView>(R.id.amount)
 
-            fun bind(entry: Entry) {
-                // TODO WTF
-                title.text = entry.type.name
-                amount.text = entry.amount.setScale(2, RoundingMode.HALF_EVEN).toString()
-                subtitle.text = when (entry.type) {
-                    Entry.Type.INCOME -> Repository.incomesCategories[-entry.categoryId - 1].title
-                    Entry.Type.EXPENSE -> Repository.expensesCategories[entry.categoryId].title
+            fun bind(entry: DataEntry) {
+                when (entry.type) {
+                    Type.INCOME -> {
+                        title.text = TrackerApp.getApplication().applicationContext.getString(R.string.incomes)
+                        val count = "+${entry.amount.setScale(2, RoundingMode.HALF_EVEN)}"
+                        amount.text = count
+                        subtitle.text = TrackerApp.sRepository.incomesCategories[-entry.categoryId - 1].title
+                    }
+                    Type.EXPENSE -> {
+                        title.text = TrackerApp.getApplication().applicationContext.getString(R.string.expenses)
+                        val count = "-${entry.amount.setScale(2, RoundingMode.HALF_EVEN)}"
+                        amount.text = count
+                        subtitle.text = TrackerApp.sRepository.expensesCategories[entry.categoryId].title
+                    }
                 }
             }
         }

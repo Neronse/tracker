@@ -4,7 +4,7 @@
     <string name="settings">Настройки</string>
     <string name="expenses">Расходы</string>
     <string name="incomes">Доходы</string>
-    <string name="balance">Баланс</string>
+    <string name="balance">Баланс:</string>
     <string name="version">Версия</string>
     <string name="build">Сборка</string>
     <string name="usd_format">$%1$s</string>
@@ -21,4 +21,24 @@
     <string name="done">Готово</string>
     <string name="history">История</string>
     <string name="statistics">Статистика</string>
+    <string name="Home">Дом</string>
+    <string name="food">Еда</string>
+    <string name="debts">Долги</string>
+    <string name="transport">Транспорт</string>
+    <string name="accounts">Счета и услуги</string>
+    <string name="personalExpense">Личные расходы</string>
+    <string name="savings">Сбережения</string>
+    <string name="otherExpense">Другие расходы</string>
+    <string name="salary">Зарплата</string>
+    <string name="grants">Стипендия</string>
+    <string name="gifts">Подарки</string>
+    <string name="alimony">Алименты</string>
+    <string name="dividend">Дивиденды</string>
+    <string name="pension">Пенсия</string>
+    <string name="benefits">Пособия</string>
+    <string name="otherIncome">Другие доходы</string>
+    <string name="USD">USD</string>
+    <string name="RUB">RUB</string>
+    <string name="converted">Конвертированный:</string>
+    <string name="parametrs">Ежемесечная операция</string>
 </resources>

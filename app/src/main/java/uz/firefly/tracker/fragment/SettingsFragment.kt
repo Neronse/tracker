@@ -2,10 +2,12 @@ package uz.firefly.tracker.fragment
 
 import android.os.Build
 import android.os.Bundle
+import android.support.v4.content.ContextCompat
 import android.support.v4.content.res.ResourcesCompat
 import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.ViewGroup
+import android.widget.RadioGroup
 import org.jetbrains.anko.*
 import org.jetbrains.anko.appcompat.v7.switchCompat
 import org.jetbrains.anko.appcompat.v7.themedToolbar
@@ -14,6 +16,8 @@ import org.jetbrains.anko.support.v4.alert
 import org.jetbrains.anko.support.v4.ctx
 import uz.firefly.tracker.BuildConfig
 import uz.firefly.tracker.R
+
+const val currentCurrency = "checked_button"
 
 class SettingsFragment : BaseFragment() {
 
@@ -91,13 +95,48 @@ internal class SettingsFragmentView : AnkoComponent<SettingsFragment> {
                 backgroundResource = R.drawable.dropshadow
             }.lparams(matchParent, dip(2))
 
-            frameLayout {
+            relativeLayout {
+                val robotoCondensed = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
+                radioGroup {
+                    orientation = RadioGroup.HORIZONTAL
+                    dividerDrawable = ContextCompat.getDrawable(ctx, R.drawable.header_divider)
+                    showDividers = RadioGroup.SHOW_DIVIDER_MIDDLE
+                    radioButton {
+                        id = R.id.usd
+                        textResource = R.string.USD
+                        typeface = robotoCondensed
+                    }
+
+                    radioButton {
+                        id = R.id.rub
+                        textResource = R.string.RUB
+                        typeface = robotoCondensed
+                    }
+
+                    check(ctx.defaultSharedPreferences.getInt(currentCurrency, R.id.rub))
+                    setOnCheckedChangeListener { radioGroup: RadioGroup?, i: Int ->
+                        if (radioGroup != null) {
+                            ctx.defaultSharedPreferences.apply {
+                                putInt(currentCurrency, radioGroup.checkedRadioButtonId)
+                            }
+                        }
+                    }
+                }.lparams(wrapContent, wrapContent) {
+                    gravity = Gravity.CENTER_HORIZONTAL
+                    below(R.id.hate)
+                }
                 switchCompat {
+                    id = R.id.hate
                     text = "Я ненавижу котиков"
                     isChecked = true
                     setOnCheckedChangeListener { _, checked -> if (!checked) postDelayed({ isChecked = true }, 500) }
-                }.lparams(gravity = Gravity.CENTER)
+                }.lparams(wrapContent, wrapContent) {
+                    gravity = Gravity.CENTER
+                }
+
+
             }.lparams(matchParent, weight = 1.0f)
+
 
         }
     }

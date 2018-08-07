@@ -1,5 +1,6 @@
 package uz.firefly.tracker.fragment
 
+import android.arch.lifecycle.ViewModelProviders
 import android.os.Build
 import android.os.Bundle
 import android.support.annotation.StringRes
@@ -10,33 +11,45 @@ import android.view.Gravity
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ArrayAdapter
-import android.widget.EditText
-import android.widget.RadioGroup
-import android.widget.Spinner
+import android.widget.*
+import androidx.work.Data
+import androidx.work.PeriodicWorkRequest
+import androidx.work.WorkManager
 import org.jetbrains.anko.*
 import org.jetbrains.anko.appcompat.v7.themedToolbar
 import org.jetbrains.anko.design.textInputEditText
 import org.jetbrains.anko.design.textInputLayout
 import org.jetbrains.anko.sdk15.coroutines.textChangedListener
 import org.jetbrains.anko.support.v4.ctx
+import uz.firefly.tracker.MainViewModel
 import uz.firefly.tracker.R
+import uz.firefly.tracker.TrackerApp
+import uz.firefly.tracker.room.DataEntry
 import uz.firefly.tracker.util.*
 import java.math.BigDecimal
 import java.util.*
+import java.util.concurrent.TimeUnit
+
+const val PERIODIC_ADD_TAG = "ADD_JOB"
+const val TYPE = "type"
+const val AMOUNT = "amount"
+const val CURRENCY = "currency"
+const val CATEGORY_ID = "categoryId"
+const val ACCOUNT_ID = "accountId"
 
 class EditorFragment : BaseFragment() {
 
     private lateinit var contentView: EditorDialogFragmentView
+    private val model by lazy { ViewModelProviders.of(this).get(MainViewModel::class.java) }
+
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
         contentView = EditorDialogFragmentView()
         return contentView.createView(AnkoContext.create(ctx, this))
     }
 
-    fun createOperation(type: Entry.Type, amount: BigDecimal, currency: String, categoryId: Int, accountId: Int) {
-        val entry = Entry(type, amount, Currency.getInstance(currency), categoryId, accountId)
-        Repository.operations.add(entry)
+    fun createOperation(type: Type, amount: BigDecimal, currency: Currency, categoryId: Int, accountId: Int) {
+        model.addOperation(DataEntry(null, type, amount, currency, categoryId, accountId))
     }
 
 }
@@ -49,6 +62,7 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
 
     lateinit var typeView: RadioGroup
     lateinit var amountView: EditText
+    lateinit var checkBox: CheckBox
 
     class CategoryHolder(val value: Category) {
         override fun toString(): String = value.title
@@ -83,14 +97,39 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                     when (it.itemId) {
                         R.id.done -> {
                             val type = when {
-                                typeView.checkedRadioButtonId == R.id.incomes -> Entry.Type.INCOME
-                                else -> Entry.Type.EXPENSE
+                                typeView.checkedRadioButtonId == R.id.incomes -> Type.INCOME
+                                else -> Type.EXPENSE
                             }
                             val amount = BigDecimal(amountView.text.toString())
-                            val currency = currencySpinner.selectedItem.toString()
+                            val currency = when (ctx.defaultSharedPreferences.getInt(currentCurrency, R.id.rub)) {
+                                R.id.rub -> Currency.getInstance(rub)
+                                R.id.usd -> Currency.getInstance(usd)
+                                else -> Currency.getInstance(rub)
+                            }
                             val categoryId = (categorySpinner.selectedItem as CategoryHolder).value.id
-                            val accountId = accountSpinner.selectedItemPosition - 1
-                            owner.createOperation(type, amount, currency, categoryId, accountId)
+                            val accountId = when (accountSpinner.selectedItem.toString()) {
+                                ctx.getString(R.string.cash) -> R.id.cash_account
+                                ctx.getString(R.string.card) -> R.id.card_account
+                                ctx.getString(R.string.yandex_money) -> R.id.yamoney_account
+                                else -> R.id.cash_account
+                            }
+                            if (checkBox.isChecked) {
+                                val data: Data = Data.Builder()
+                                        .putString(TYPE, type.toString())
+                                        .putString(AMOUNT, amount.toPlainString())
+                                        .putString(CURRENCY, currency.currencyCode)
+                                        .putInt(CATEGORY_ID, categoryId)
+                                        .putInt(ACCOUNT_ID, accountId)
+                                        .build()
+                                val periodicWorkRequest = PeriodicWorkRequest.Builder(RegularOperationWorker::class.java, 30, TimeUnit.DAYS)
+                                        .setInputData(data)
+                                        .addTag(PERIODIC_ADD_TAG)
+                                        .build()
+                                WorkManager.getInstance().enqueue(periodicWorkRequest)
+
+                            } else {
+                                owner.createOperation(type, amount, currency, categoryId, accountId)
+                            }
                             owner.requireFragmentManager().popBackStack()
                             true
                         }
@@ -152,19 +191,21 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                         horizontalPadding = padding
                     }
 
+                    /*
+                        headerTextView(R.string.currency)
 
-                    headerTextView(R.string.currency)
-
-                    currencySpinner = spinner {
-                        adapter = object : ArrayAdapter<String>(ctx, android.R.layout.simple_list_item_1,
-                                android.R.id.text1, arrayOf(usd, rub)) {
-                            override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
-                                return super.getView(position, convertView, parent).also {
-                                    it.setPadding(padding, padding, padding, padding)
+                        //Вдруг опять будет обмен и автор захочет это использовать
+                        currencySpinner = spinner {
+                            adapter = object : ArrayAdapter<String>(ctx, android.R.layout.simple_list_item_1,
+                                    android.R.id.text1, arrayOf(rub, usd)) {
+                                override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
+                                    return super.getView(position, convertView, parent).also {
+                                        it.setPadding(padding, padding, padding, padding)
+                                    }
                                 }
                             }
-                        }
-                    }.lparams(matchParent, wrapContent)
+                        }.lparams(matchParent, wrapContent)
+                    */
 
                     headerTextView(R.string.category)
 
@@ -174,8 +215,8 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
 
                     accountSpinner = spinner {
                         adapter = object : ArrayAdapter<String>(ctx, android.R.layout.simple_list_item_1,
-                                android.R.id.text1, Repository.accounts
-                                .slice(1 until Repository.accounts.size)
+                                android.R.id.text1, TrackerApp.sRepository.accounts
+                                .slice(1 until TrackerApp.sRepository.accounts.size)
                                 .map { ctx.getString(it.title) }) {
                             override fun getView(position: Int, convertView: View?, parent: ViewGroup?): View {
                                 return super.getView(position, convertView, parent).also {
@@ -184,6 +225,12 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                             }
                         }
                     }.lparams(matchParent, wrapContent)
+
+                    checkBox = checkBox {
+                        textResource = R.string.parametrs
+                        typeface = robotoCondensed
+                        isChecked = false
+                    }
                 }
 
 
@@ -204,8 +251,8 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
 
     fun updateCategorySpinner() {
         val categories = when (typeView.checkedRadioButtonId) {
-            R.id.incomes -> Repository.incomesCategories
-            R.id.expenses -> Repository.expensesCategories
+            R.id.incomes -> TrackerApp.sRepository.incomesCategories
+            R.id.expenses -> TrackerApp.sRepository.expensesCategories
             else -> throw RuntimeException("invalid checkedRadioButtonId")
         }
         categorySpinner.adapter = object : ArrayAdapter<CategoryHolder>(categorySpinner.context,
@@ -219,5 +266,6 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
             }
         }
     }
+
 
 }
