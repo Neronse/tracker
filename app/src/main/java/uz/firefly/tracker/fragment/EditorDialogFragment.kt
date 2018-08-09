@@ -326,7 +326,6 @@ private class EditorDialogFragmentView : AnkoComponent<EditorFragment> {
                     }.lparams(matchParent, dip(250))
 
                 }
-
             }.lparams(matchParent, wrapContent) {
                 alignParentBottom()
                 bottomOf(R.id.toolbar)

@@ -42,5 +42,8 @@
     <item name="templateInfo" type="id" />
     <item name="templateAmount" type="id" />
     <item name="templateLineLayout" type="id" />
+    <item name="donutContent" type="id" />
+    <item name="historyContent" type="id" />
+    <item name="dummyContent" type="id" />
 
 </resources>

@@ -14,7 +14,10 @@ import android.support.design.internal.BottomNavigationItemView
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.res.ResourcesCompat
-import android.view.*
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -36,10 +39,12 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 const val EMPTY_EXCHANGE_RATE = "0"
+
 class MainFragment : BaseFragment() {
 
     private lateinit var contentView: MainFragmentView
-    val model by lazy { ViewModelProviders.of(activity!!).get(MainViewModel::class.java) }
+    private val model by lazy { ViewModelProviders.of(activity!!).get(MainViewModel::class.java) }
+    val isTablet = resources.getBoolean(R.bool.isTablet)
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -49,7 +54,11 @@ class MainFragment : BaseFragment() {
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         if (savedInstanceState == null) {
-            setCurrentPage(R.id.balance)
+            if (isTablet) {
+                setTabletContentFragments()
+            } else {
+                setCurrentPage(R.id.balance)
+            }
         }
         setCurrentAccount(0)
         model.updateHistory(R.id.total_account)
@@ -77,8 +86,16 @@ class MainFragment : BaseFragment() {
         contentView.setCurrentAccount(index)
     }
 
-    fun updateDataForFragments(accountId: Int){
+    fun updateDataForFragments(accountId: Int) {
         model.updateHistory(accountId)
+    }
+
+    private fun setTabletContentFragments() {
+        childFragmentManager.beginTransaction()
+                .add(R.id.donutContent, DonutFragment())
+                .add(R.id.historyContent, HistoryFragment())
+                .add(R.id.dummyContent, DummyFragment())
+                .commit()
     }
 
     private fun setContentFragment(fragment: Fragment) {
@@ -209,7 +226,6 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
             }
 
             verticalLayout {
-
                 exchangeRate = textView {
                     id = R.id.title
                     typeface = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
@@ -250,10 +266,22 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
 
                 frameLayout {
 
-                    frameLayout {
-                        id = R.id.content
+                    if (owner.isTablet) {
+                        frameLayout {
+                            id = R.id.donutContent
+                        }.lparams(matchParent, 0)
+                        frameLayout {
+                            id = R.id.historyContent
+                        }.lparams(matchParent, 0)
+                        frameLayout {
+                            id = R.id.dummyContent
+                        }.lparams(matchParent, 0)
+                    } else {
+                        frameLayout {
+                            id = R.id.content
 
-                    }.lparams(matchParent, matchParent)
+                        }.lparams(matchParent, matchParent)
+                    }
 
                     floatingActionButton {
                         val color = ContextCompat.getColor(ctx, R.color.primary)
@@ -270,21 +298,22 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
                 view {
                     backgroundResource = R.drawable.bottom_shadow
                 }.lparams(matchParent, dip(2))
-
-                bottomNavigationView {
-                    inflateMenu(R.menu.navigation)
-                    setOnNavigationItemSelectedListener {
-                        owner.setCurrentPage(it.itemId)
-                        true
-                    }
-                    val typeface = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
-                    (getChildAt(0) as ViewGroup).forEachChild { child ->
-                        (child as BottomNavigationItemView).apply {
-                            find<TextView>(R.id.smallLabel).typeface = typeface
-                            find<TextView>(R.id.largeLabel).typeface = typeface
+                if (!owner.isTablet) {
+                    bottomNavigationView {
+                        inflateMenu(R.menu.navigation)
+                        setOnNavigationItemSelectedListener {
+                            owner.setCurrentPage(it.itemId)
+                            true
                         }
-                    }
-                }.lparams(matchParent, wrapContent)
+                        val typeface = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
+                        (getChildAt(0) as ViewGroup).forEachChild { child ->
+                            (child as BottomNavigationItemView).apply {
+                                find<TextView>(R.id.smallLabel).typeface = typeface
+                                find<TextView>(R.id.largeLabel).typeface = typeface
+                            }
+                        }
+                    }.lparams(matchParent, wrapContent)
+                }
 
             }.lparams(matchParent, wrapContent) {
                 alignParentBottom()

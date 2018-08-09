@@ -15,7 +15,6 @@ fun BigDecimal.toRub(exchangeRate: BigDecimal) = multiply(exchangeRate).setScale
 
 object BalanceManager {
 
-
     fun total(exchangeRate: BigDecimal, operations: Iterable<DataEntry>): BigDecimal =
             operations.fold(BigDecimal(0)) { total, entry ->
                 val amount = when (entry.currency.currencyCode) {
