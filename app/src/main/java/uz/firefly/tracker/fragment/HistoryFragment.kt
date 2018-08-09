@@ -43,11 +43,12 @@ class HistoryFragment : BaseFragment() {
         val list = find<RecyclerView>(R.id.recycler)
         list.adapter = HistoryFragmentView.OperationsAdapter(mutableListOf()) { dataEntry: DataEntry ->  showAlertDeleteDialog(dataEntry)}
         val recyclerAdapter = list.adapter as HistoryFragmentView.OperationsAdapter
-        model.history.observe(this, Observer {
+        model.history.observe(this, Observer { it ->
             if(it != null) {
-                val operationDiffUtil = OperationDiffUtil(recyclerAdapter.entries, it)
+                val sorted = it.sortedByDescending { it.date }
+                val operationDiffUtil = OperationDiffUtil(recyclerAdapter.entries, sorted)
                 val diffResult = DiffUtil.calculateDiff(operationDiffUtil)
-                recyclerAdapter.setData(it)
+                recyclerAdapter.setData(sorted)
                 diffResult.dispatchUpdatesTo(recyclerAdapter)
             }
         })
@@ -98,7 +99,7 @@ private class HistoryFragmentView : AnkoComponent<HistoryFragment> {
 
         fun setData(entries: List<DataEntry>) {
                 this.entries.clear()
-                this.entries.addAll(entries.sortedByDescending { it.date } )
+                this.entries.addAll(entries )
             }
 
 
