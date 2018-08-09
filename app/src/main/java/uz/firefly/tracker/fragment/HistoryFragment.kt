@@ -124,15 +124,17 @@ private class HistoryFragmentView : AnkoComponent<HistoryFragment> {
                     Type.INCOME -> {
                         title.text = TrackerApp.getApplication().applicationContext.getString(R.string.incomes)
                         subtitle.text = TrackerApp.sRepository.incomesCategories[-entry.categoryId - 1].title
+                        val count = "+${entry.amount.setScale(2, RoundingMode.HALF_EVEN)}"
+                        amount.text = count
                     }
                     Type.EXPENSE -> {
                         title.text = TrackerApp.getApplication().applicationContext.getString(R.string.expenses)
                         subtitle.text = TrackerApp.sRepository.expensesCategories[entry.categoryId].title
+                        val count = "-${entry.amount.setScale(2, RoundingMode.HALF_EVEN)}"
+                        amount.text = count
                     }
                 }
                 date.text = DateFormat.getDateInstance().format(entry.date)
-                val count = "+${entry.amount.setScale(2, RoundingMode.HALF_EVEN)}"
-                amount.text = count
                 itemView.setOnLongClickListener {
 
                     clickListener(entry)

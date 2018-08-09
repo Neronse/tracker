@@ -8,7 +8,7 @@ import android.content.Context
 import uz.firefly.tracker.TrackerApp
 
 
-@Database(entities = arrayOf(DataEntry::class), version = 1)
+@Database(entities = arrayOf(DataEntry::class, TemplateEntry::class), version = 1)
 @TypeConverters (EntryConverter::class)
 
 abstract class AppDatabase :RoomDatabase() {

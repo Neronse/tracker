@@ -36,5 +36,11 @@
     <item name="dateBlock" type="id" />
     <item name="dateTitle" type="id" />
     <item name="statisticsBlock" type="id" />
+    <item name="templateBtn" type="id" />
+    <item name="templateList" type="id" />
+    <item name="templateTitle" type="id" />
+    <item name="templateInfo" type="id" />
+    <item name="templateAmount" type="id" />
+    <item name="templateLineLayout" type="id" />
 
 </resources>

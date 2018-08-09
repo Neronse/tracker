@@ -34,4 +34,13 @@ interface OperationDao {
     @Delete
     fun deleteItem(dataEntry: DataEntry)
 
+    @Query("SELECT * FROM templates WHERE currency = :currency")
+    fun getAllTemplates(currency: Currency): LiveData<List<TemplateEntry>>
+
+    @Insert(onConflict = REPLACE)
+    fun insertTemplate(templateEntry: TemplateEntry)
+
+    @Delete
+    fun deleteTemplate(templateEntry: TemplateEntry)
+
 }

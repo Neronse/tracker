@@ -47,4 +47,9 @@
     <string name="noData">Нет данных</string>
     <string name="statistics">Статистика</string>
     <string name="diff">Итог </string>
+    <string name="createTemplate">создать шаблон</string>
+    <string name="fillFields">Заполните поля</string>
+    <string name="template">Шаблон</string>
+    <string name="enterTemplateId">Укажите название шаблона</string>
+    <string name="added">Добавленно</string>
 </resources>

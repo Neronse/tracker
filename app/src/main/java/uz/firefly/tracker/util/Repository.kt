@@ -8,6 +8,7 @@ import uz.firefly.tracker.R
 import uz.firefly.tracker.fragment.currentCurrency
 import uz.firefly.tracker.room.AppDatabase
 import uz.firefly.tracker.room.DataEntry
+import uz.firefly.tracker.room.TemplateEntry
 import java.text.DateFormat
 import java.util.*
 
@@ -74,6 +75,12 @@ class Repository(context: Context) {
             database.operationDao().getOperation(getCurrencyState(), accountId)
 
     fun deleteItem(dataEntry: DataEntry) = database.operationDao().deleteItem(dataEntry)
+
+    fun deleteTemplate(templateEntry: TemplateEntry) = database.operationDao().deleteTemplate(templateEntry)
+
+    fun getAllTemplates():LiveData<List<TemplateEntry>> = database.operationDao().getAllTemplates(getCurrencyState())
+
+    fun insetTemplate(templateEntry: TemplateEntry) = database.operationDao().insertTemplate(templateEntry)
 
     private fun getCurrencyState(): Currency {
         val currentCurrencySetting = appContext.defaultSharedPreferences.getInt(currentCurrency, R.id.rub)
