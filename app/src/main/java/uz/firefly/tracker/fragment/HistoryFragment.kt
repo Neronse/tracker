@@ -63,7 +63,8 @@ class HistoryFragment : BaseFragment() {
                     padding = dip(16)
                     gravity = Gravity.CENTER_HORIZONTAL
 
-                    textView("Вы действительно хотите удалить операцию?") {
+                    textView {
+                        textResource = R.string.deleteOperationAccess
                         textSize = 20.0f
                         textColorResource = R.color.secondary
                         gravity = Gravity.CENTER_HORIZONTAL

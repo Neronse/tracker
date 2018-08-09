@@ -2,11 +2,13 @@ package uz.firefly.tracker.util
 
 import android.arch.lifecycle.LiveData
 import android.content.Context
+import android.util.Log
 import org.jetbrains.anko.defaultSharedPreferences
 import uz.firefly.tracker.R
 import uz.firefly.tracker.fragment.currentCurrency
 import uz.firefly.tracker.room.AppDatabase
 import uz.firefly.tracker.room.DataEntry
+import java.text.DateFormat
 import java.util.*
 
 data class Category(val id: Int, val title: String)
@@ -16,6 +18,9 @@ data class Account(val icon: Int, val title: Int, val id: Int)
 enum class Type {
     EXPENSE, INCOME
 }
+
+const val FROM = 0
+const val TO = 1
 
 class Repository(context: Context) {
     private val database: AppDatabase = AppDatabase.getDatabaseInstance()
@@ -49,14 +54,21 @@ class Repository(context: Context) {
             Account(R.drawable.ic_web_black_24dp, R.string.yandex_money, R.id.yamoney_account))
 
     fun getDataEntries(): List<DataEntry> =
-        database.operationDao().getAll(getCurrencyState())
+            database.operationDao().getAll(getCurrencyState())
 
     fun getLiveBase(): LiveData<List<DataEntry>> = database.operationDao().getLiveBase(getCurrencyState())
 
     fun insertEntry(entry: DataEntry) = database.operationDao().insert(entry)
 
-    fun  getOperationBetweenDate(from:Date, to:Date): LiveData<List<DataEntry>> =
-            database.operationDao().getOperationBetweenDate(from,to)
+    fun getOperationBetweenDate(accountId: Int): List<DataEntry> {
+        val list = getDateFromTo()
+        return database.operationDao().getOperationBetweenDateAccount(list[FROM], list[TO], getCurrencyState(), accountId)
+    }
+
+    fun getAllBetweenDate(): List<DataEntry> {
+        val list = getDateFromTo()
+        return database.operationDao().getAllBetweenDate(list[FROM], list[TO], getCurrencyState())
+    }
 
     fun getOperation(accountId: Int): List<DataEntry> =
             database.operationDao().getOperation(getCurrencyState(), accountId)
@@ -70,5 +82,15 @@ class Repository(context: Context) {
             R.id.rub -> Currency.getInstance(rub)
             else -> Currency.getInstance(rub)
         }
+    }
+
+    private fun getDateFromTo(): List<Date> {
+        val calendar = Calendar.getInstance()
+        calendar.set(Calendar.DAY_OF_MONTH, 0)
+        val endDate = Date()
+        val fromDate: Date = calendar.time
+        Log.d("LOG_TAG", "endDate ${DateFormat.getDateInstance().format(endDate)}")
+        Log.d("LOG_TAG", "fromDate ${DateFormat.getDateInstance().format(fromDate)}")
+        return listOf(fromDate, endDate)
     }
 }

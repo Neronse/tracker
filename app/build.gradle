@@ -62,11 +62,11 @@ dependencies {
     kapt "android.arch.persistence.room:compiler:$room_version"
 
 
-    testImplementation 'junit:junit:4.12'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation "com.android.support.test:rules:1.0.2"
-    androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
-    androidTestImplementation "com.android.support.test.espresso:espresso-contrib:3.0.2"
+    testImplementation "junit:junit:$junit_version"
+    androidTestImplementation "com.android.support.test:runner:$runner_version"
+    androidTestImplementation "com.android.support.test:rules:$rules_version"
+    androidTestImplementation "com.android.support.test.espresso:espresso-core:$espressoCore_version"
+    androidTestImplementation "com.android.support.test.espresso:espresso-contrib:$espressoContrib_version"
 
 }
 kotlin {

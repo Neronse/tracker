@@ -32,5 +32,9 @@
     <item name="date" type="id" />
     <item name="datePickBtn" type="id" />
     <item name="dateTextHist" type="id" />
+    <item name="calendarView" type="id" />
+    <item name="dateBlock" type="id" />
+    <item name="dateTitle" type="id" />
+    <item name="statisticsBlock" type="id" />
 
 </resources>

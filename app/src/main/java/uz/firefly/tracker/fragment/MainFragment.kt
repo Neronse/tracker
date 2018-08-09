@@ -35,7 +35,7 @@ import uz.firefly.tracker.util.usdRub
 import java.math.BigDecimal
 import java.math.RoundingMode
 
-const val EMPTY_EXHANGE_RATE = "0"
+const val EMPTY_EXCHANGE_RATE = "0"
 class MainFragment : BaseFragment() {
 
     private lateinit var contentView: MainFragmentView
@@ -57,8 +57,8 @@ class MainFragment : BaseFragment() {
             if (it != null) {
                 val total = BalanceManager.calculateBalance(it)
                 val balance = "${getString(R.string.balance)} ${total.toPlainString()}"
-                val exchangeRate = (defaultSharedPreferences.getString(usdRub, EMPTY_EXHANGE_RATE))
-                if (exchangeRate != EMPTY_EXHANGE_RATE) {
+                val exchangeRate = (defaultSharedPreferences.getString(usdRub, EMPTY_EXCHANGE_RATE))
+                if (exchangeRate != EMPTY_EXCHANGE_RATE) {
                     val convertBalance = when (defaultSharedPreferences.getInt(currentCurrency, R.id.rub)) {
                         R.id.rub -> total.toUsd(BigDecimal(exchangeRate).setScale(2, RoundingMode.HALF_EVEN))
                         R.id.usd -> total.toRub(BigDecimal(exchangeRate).setScale(2, RoundingMode.HALF_EVEN))
@@ -73,10 +73,12 @@ class MainFragment : BaseFragment() {
     }
 
 
-    fun setCurrentAccount(accountId: Int) {
-        contentView.setCurrentAccount(accountId)
+    fun setCurrentAccount(index: Int) {
+        contentView.setCurrentAccount(index)
+    }
 
-
+    fun updateDataForFragments(accountId: Int){
+        model.updateHistory(accountId)
     }
 
     private fun setContentFragment(fragment: Fragment) {
@@ -188,7 +190,7 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
                                 setTag(R.id.account, account.id)
                                 onClick {
                                     owner.setCurrentAccount(index)
-                                    owner.model.updateHistory(it?.getTag(R.id.account) as Int)
+                                    owner.updateDataForFragments(it?.getTag(R.id.account) as Int)
                                 }
                             }.lparams(wrapContent, wrapContent)
                         }

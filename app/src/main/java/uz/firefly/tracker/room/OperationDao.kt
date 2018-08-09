@@ -25,8 +25,11 @@ interface OperationDao {
     @Query("SELECT * FROM entrys WHERE currency = :currency AND accountid = :accountid")
     fun getOperation(currency: Currency, accountid:Int): List<DataEntry>
 
-    @Query("SELECT * FROM entrys WHERE date BETWEEN :from and :to")
-    fun getOperationBetweenDate(from:Date, to:Date): LiveData<List<DataEntry>>
+    @Query("SELECT * FROM entrys WHERE date BETWEEN :from and :to AND currency = :currency AND accountid = :accountid")
+    fun getOperationBetweenDateAccount(from:Date, to:Date, currency: Currency, accountid: Int): List<DataEntry>
+
+    @Query("SELECT * FROM entrys WHERE date BETWEEN :from and :to AND currency = :currency ")
+    fun getAllBetweenDate(from:Date, to:Date, currency: Currency): List<DataEntry>
 
     @Delete
     fun deleteItem(dataEntry: DataEntry)
