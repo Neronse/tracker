@@ -44,7 +44,6 @@ class MainFragment : BaseFragment() {
 
     private lateinit var contentView: MainFragmentView
     private val model by lazy { ViewModelProviders.of(activity!!).get(MainViewModel::class.java) }
-    val isTablet = resources.getBoolean(R.bool.isTablet)
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -53,6 +52,8 @@ class MainFragment : BaseFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val isTablet = resources.getBoolean(R.bool.isTablet)
+
         if (savedInstanceState == null) {
             if (isTablet) {
                 setTabletContentFragments()
@@ -92,9 +93,9 @@ class MainFragment : BaseFragment() {
 
     private fun setTabletContentFragments() {
         childFragmentManager.beginTransaction()
-                .add(R.id.donutContent, DonutFragment())
-                .add(R.id.historyContent, HistoryFragment())
-                .add(R.id.dummyContent, DummyFragment())
+                .replace(R.id.donutContent, DonutFragment())
+                .replace(R.id.historyContent, HistoryFragment())
+                .replace(R.id.dummyContent, DummyFragment())
                 .commit()
     }
 
@@ -157,6 +158,8 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
     private lateinit var currencyView: TextView
 
     override fun createView(ui: AnkoContext<MainFragment>) = with(ui) {
+        val isTablet = resources.getBoolean(R.bool.isTablet)
+
         relativeLayout {
             lparams(matchParent, matchParent)
 
@@ -266,16 +269,23 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
 
                 frameLayout {
 
-                    if (owner.isTablet) {
-                        frameLayout {
-                            id = R.id.donutContent
-                        }.lparams(matchParent, 0)
-                        frameLayout {
-                            id = R.id.historyContent
-                        }.lparams(matchParent, 0)
-                        frameLayout {
-                            id = R.id.dummyContent
-                        }.lparams(matchParent, 0)
+                    if (isTablet) {
+                        linearLayout {
+                            verticalLayout {
+                                frameLayout {
+                                    id = R.id.donutContent
+                                }.lparams(matchParent, 0, weight = 1f)
+
+                                frameLayout {
+                                    id = R.id.historyContent
+                                }.lparams(matchParent, 0, weight = 1f)
+                            }.lparams(0, matchParent, weight = 2f)
+
+                            frameLayout {
+                                id = R.id.dummyContent
+                            }.lparams(0, matchParent, weight = 1f)
+                        }
+
                     } else {
                         frameLayout {
                             id = R.id.content
@@ -298,7 +308,7 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
                 view {
                     backgroundResource = R.drawable.bottom_shadow
                 }.lparams(matchParent, dip(2))
-                if (!owner.isTablet) {
+                if (!isTablet) {
                     bottomNavigationView {
                         inflateMenu(R.menu.navigation)
                         setOnNavigationItemSelectedListener {
