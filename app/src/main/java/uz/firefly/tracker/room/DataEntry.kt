@@ -13,5 +13,6 @@ data class DataEntry(
         @ColumnInfo(name = "amount")val amount: BigDecimal,
         @ColumnInfo(name = "currency")val currency: Currency,
         @ColumnInfo(name = "categoryid") val categoryId:Int,
-        @ColumnInfo(name = "accountid")val accountId:Int
+        @ColumnInfo(name = "accountid")val accountId:Int,
+        @ColumnInfo(name = "date") val date:Date
 )

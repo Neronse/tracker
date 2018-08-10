@@ -29,5 +29,21 @@
     <item name="pieChart" type="id" />
     <item name="currentRubBalance" type="id" />
     <item name="currentUsdBalance" type="id" />
+    <item name="date" type="id" />
+    <item name="datePickBtn" type="id" />
+    <item name="dateTextHist" type="id" />
+    <item name="calendarView" type="id" />
+    <item name="dateBlock" type="id" />
+    <item name="dateTitle" type="id" />
+    <item name="statisticsBlock" type="id" />
+    <item name="templateBtn" type="id" />
+    <item name="templateList" type="id" />
+    <item name="templateTitle" type="id" />
+    <item name="templateInfo" type="id" />
+    <item name="templateAmount" type="id" />
+    <item name="templateLineLayout" type="id" />
+    <item name="donutContent" type="id" />
+    <item name="historyContent" type="id" />
+    <item name="dummyContent" type="id" />
 
 </resources>

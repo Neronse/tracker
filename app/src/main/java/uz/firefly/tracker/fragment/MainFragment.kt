@@ -14,7 +14,10 @@ import android.support.design.internal.BottomNavigationItemView
 import android.support.v4.app.Fragment
 import android.support.v4.content.ContextCompat
 import android.support.v4.content.res.ResourcesCompat
-import android.view.*
+import android.view.Gravity
+import android.view.LayoutInflater
+import android.view.View
+import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.TextView
@@ -35,10 +38,12 @@ import uz.firefly.tracker.util.usdRub
 import java.math.BigDecimal
 import java.math.RoundingMode
 
+const val EMPTY_EXCHANGE_RATE = "0"
+
 class MainFragment : BaseFragment() {
 
     private lateinit var contentView: MainFragmentView
-    val model by lazy { ViewModelProviders.of(activity!!).get(MainViewModel::class.java) }
+    private val model by lazy { ViewModelProviders.of(activity!!).get(MainViewModel::class.java) }
 
 
     override fun onCreateView(inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?): View? {
@@ -47,17 +52,23 @@ class MainFragment : BaseFragment() {
     }
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        val isTablet = resources.getBoolean(R.bool.isTablet)
+
         if (savedInstanceState == null) {
-            setCurrentPage(R.id.balance)
+            if (isTablet) {
+                setTabletContentFragments()
+            } else {
+                setCurrentPage(R.id.balance)
+            }
         }
         setCurrentAccount(0)
         model.updateHistory(R.id.total_account)
-        model.getLiveBase().observe(this, Observer {
+        model.getLiveBaseEntry().observe(this, Observer {
             if (it != null) {
                 val total = BalanceManager.calculateBalance(it)
                 val balance = "${getString(R.string.balance)} ${total.toPlainString()}"
-                val exchangeRate = (defaultSharedPreferences.getString(usdRub, "0"))
-                if (!exchangeRate.equals("0")) {
+                val exchangeRate = (defaultSharedPreferences.getString(usdRub, EMPTY_EXCHANGE_RATE))
+                if (exchangeRate != EMPTY_EXCHANGE_RATE) {
                     val convertBalance = when (defaultSharedPreferences.getInt(currentCurrency, R.id.rub)) {
                         R.id.rub -> total.toUsd(BigDecimal(exchangeRate).setScale(2, RoundingMode.HALF_EVEN))
                         R.id.usd -> total.toRub(BigDecimal(exchangeRate).setScale(2, RoundingMode.HALF_EVEN))
@@ -72,10 +83,20 @@ class MainFragment : BaseFragment() {
     }
 
 
-    fun setCurrentAccount(accountId: Int) {
-        contentView.setCurrentAccount(accountId)
+    fun setCurrentAccount(index: Int) {
+        contentView.setCurrentAccount(index)
+    }
 
+    fun updateDataForFragments(accountId: Int) {
+        model.updateHistory(accountId)
+    }
 
+    private fun setTabletContentFragments() {
+        childFragmentManager.beginTransaction()
+                .replace(R.id.donutContent, DonutFragment())
+                .replace(R.id.historyContent, HistoryFragment())
+                .replace(R.id.dummyContent, DummyFragment())
+                .commit()
     }
 
     private fun setContentFragment(fragment: Fragment) {
@@ -95,13 +116,14 @@ class MainFragment : BaseFragment() {
         defaultSharedPreferences.unregisterOnSharedPreferenceChangeListener(listener)
     }
 
-    val listener = SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> contentView.updateExchangeRate() }
+    private val listener =
+            SharedPreferences.OnSharedPreferenceChangeListener { _, _ -> contentView.updateExchangeRate() }
 
     fun setCurrentPage(pageId: Int) {
         when (pageId) {
             R.id.balance -> setContentFragment(DonutFragment())
             R.id.history -> setContentFragment(HistoryFragment())
-            // R.id.statistics -> setContentFragment(DummyFragment())
+            R.id.statistics -> setContentFragment(DummyFragment())
         }
     }
 
@@ -136,6 +158,8 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
     private lateinit var currencyView: TextView
 
     override fun createView(ui: AnkoContext<MainFragment>) = with(ui) {
+        val isTablet = resources.getBoolean(R.bool.isTablet)
+
         relativeLayout {
             lparams(matchParent, matchParent)
 
@@ -186,7 +210,7 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
                                 setTag(R.id.account, account.id)
                                 onClick {
                                     owner.setCurrentAccount(index)
-                                    owner.model.updateHistory(it?.getTag(R.id.account) as Int)
+                                    owner.updateDataForFragments(it?.getTag(R.id.account) as Int)
                                 }
                             }.lparams(wrapContent, wrapContent)
                         }
@@ -205,7 +229,6 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
             }
 
             verticalLayout {
-
                 exchangeRate = textView {
                     id = R.id.title
                     typeface = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
@@ -246,10 +269,29 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
 
                 frameLayout {
 
-                    frameLayout {
-                        id = R.id.content
+                    if (isTablet) {
+                        linearLayout {
+                            verticalLayout {
+                                frameLayout {
+                                    id = R.id.donutContent
+                                }.lparams(matchParent, 0, weight = 1f)
 
-                    }.lparams(matchParent, matchParent)
+                                frameLayout {
+                                    id = R.id.historyContent
+                                }.lparams(matchParent, 0, weight = 1f)
+                            }.lparams(0, matchParent, weight = 2f)
+
+                            frameLayout {
+                                id = R.id.dummyContent
+                            }.lparams(0, matchParent, weight = 1f)
+                        }
+
+                    } else {
+                        frameLayout {
+                            id = R.id.content
+
+                        }.lparams(matchParent, matchParent)
+                    }
 
                     floatingActionButton {
                         val color = ContextCompat.getColor(ctx, R.color.primary)
@@ -266,21 +308,22 @@ private class MainFragmentView : AnkoComponent<MainFragment> {
                 view {
                     backgroundResource = R.drawable.bottom_shadow
                 }.lparams(matchParent, dip(2))
-
-                bottomNavigationView {
-                    inflateMenu(R.menu.navigation)
-                    setOnNavigationItemSelectedListener {
-                        owner.setCurrentPage(it.itemId)
-                        true
-                    }
-                    val typeface = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
-                    (getChildAt(0) as ViewGroup).forEachChild { child ->
-                        (child as BottomNavigationItemView).apply {
-                            find<TextView>(R.id.smallLabel).typeface = typeface
-                            find<TextView>(R.id.largeLabel).typeface = typeface
+                if (!isTablet) {
+                    bottomNavigationView {
+                        inflateMenu(R.menu.navigation)
+                        setOnNavigationItemSelectedListener {
+                            owner.setCurrentPage(it.itemId)
+                            true
                         }
-                    }
-                }.lparams(matchParent, wrapContent)
+                        val typeface = ResourcesCompat.getFont(ctx, R.font.roboto_condensed_regular)
+                        (getChildAt(0) as ViewGroup).forEachChild { child ->
+                            (child as BottomNavigationItemView).apply {
+                                find<TextView>(R.id.smallLabel).typeface = typeface
+                                find<TextView>(R.id.largeLabel).typeface = typeface
+                            }
+                        }
+                    }.lparams(matchParent, wrapContent)
+                }
 
             }.lparams(matchParent, wrapContent) {
                 alignParentBottom()

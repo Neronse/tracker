@@ -20,7 +20,6 @@
     <string name="account">Счет</string>
     <string name="done">Готово</string>
     <string name="history">История</string>
-    <string name="statistics">Статистика</string>
     <string name="Home">Дом</string>
     <string name="food">Еда</string>
     <string name="debts">Долги</string>
@@ -41,4 +40,16 @@
     <string name="RUB">RUB</string>
     <string name="converted">Конвертированный:</string>
     <string name="parametrs">Ежемесечная операция</string>
+    <string name="chooseDate">Выбрать дату</string>
+    <string name="deleteOperationAccess">Вы действительно хотите удалить операцию?</string>
+    <string name="toDate">По:</string>
+    <string name="fromDate">C:</string>
+    <string name="noData">Нет данных</string>
+    <string name="statistics">Статистика</string>
+    <string name="diff">Итог </string>
+    <string name="createTemplate">создать шаблон</string>
+    <string name="fillFields">Заполните поля</string>
+    <string name="template">Шаблон</string>
+    <string name="enterTemplateId">Укажите название шаблона</string>
+    <string name="added">Добавленно</string>
 </resources>
