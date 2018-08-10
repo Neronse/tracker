@@ -9,6 +9,7 @@ buildscript {
     ext.espressoCore_version = '3.0.2'
     ext.espressoContrib_version = '3.0.2'
     ext.junit_version = '4.12'
+    ext.arch_core_test_vesion = '1.1.1'
 
     repositories {
         google()

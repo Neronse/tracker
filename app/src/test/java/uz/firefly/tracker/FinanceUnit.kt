@@ -12,19 +12,19 @@ import java.util.*
 
 class FinanceUnit{
     private val list:List<DataEntry> = listOf(
-            DataEntry(null, Type.INCOME, BigDecimal(1.51), Currency.getInstance("RUB"), 1, R.id.total_account),
-            DataEntry(null, Type.EXPENSE, BigDecimal(1.51), Currency.getInstance("RUB"), 1, R.id.total_account),
-            DataEntry(null, Type.INCOME, BigDecimal(1.51), Currency.getInstance("RUB"), 1, R.id.total_account),
-            DataEntry(null, Type.EXPENSE, BigDecimal(1.51), Currency.getInstance("RUB"), 1, R.id.total_account)
+            DataEntry(null, Type.INCOME, BigDecimal(1.51), Currency.getInstance("RUB"), 1, R.id.total_account, Date()),
+            DataEntry(null, Type.EXPENSE, BigDecimal(1.51), Currency.getInstance("RUB"), 1, R.id.total_account,Date()),
+            DataEntry(null, Type.INCOME, BigDecimal(1.51), Currency.getInstance("RUB"), 1, R.id.total_account,Date()),
+            DataEntry(null, Type.EXPENSE, BigDecimal(1.51), Currency.getInstance("RUB"), 1, R.id.total_account,Date())
             )
     private val list2:List<DataEntry> = listOf(
-            DataEntry(null, Type.INCOME, BigDecimal(1.51), Currency.getInstance("RUB"), 1, R.id.total_account),
-            DataEntry(null, Type.EXPENSE, BigDecimal(1.51), Currency.getInstance("USD"), 1, R.id.total_account)
+            DataEntry(null, Type.INCOME, BigDecimal(1.51), Currency.getInstance("RUB"), 1, R.id.total_account,Date()),
+            DataEntry(null, Type.EXPENSE, BigDecimal(1.51), Currency.getInstance("USD"), 1, R.id.total_account,Date())
     )
 
     private val list3:List<DataEntry> = listOf(
-            DataEntry(null, Type.INCOME, BigDecimal(1.512681), Currency.getInstance("RUB"), 1, R.id.total_account),
-            DataEntry(null, Type.INCOME, BigDecimal(1.512681), Currency.getInstance("RUB"), 1, R.id.total_account)
+            DataEntry(null, Type.INCOME, BigDecimal(1.512681), Currency.getInstance("RUB"), 1, R.id.total_account,Date()),
+            DataEntry(null, Type.INCOME, BigDecimal(1.512681), Currency.getInstance("RUB"), 1, R.id.total_account,Date())
             )
     @Test
     fun testCalculateBalance1() {

@@ -63,7 +63,7 @@ class MainFragment : BaseFragment() {
         }
         setCurrentAccount(0)
         model.updateHistory(R.id.total_account)
-        model.getLiveBase().observe(this, Observer {
+        model.getLiveBaseEntry().observe(this, Observer {
             if (it != null) {
                 val total = BalanceManager.calculateBalance(it)
                 val balance = "${getString(R.string.balance)} ${total.toPlainString()}"

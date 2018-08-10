@@ -6,7 +6,6 @@ import uz.firefly.tracker.room.AppDatabase
 import uz.firefly.tracker.room.DataEntry
 import java.math.BigDecimal
 import java.math.RoundingMode
-import java.text.DateFormat
 import java.util.*
 
 class RegularOperationWorker : Worker() {
@@ -18,7 +17,7 @@ class RegularOperationWorker : Worker() {
         val categoryId = inputData.getInt(CATEGORY_ID, 0)
         val accountId = inputData.getInt(ACCOUNT_ID, 0)
         if (type != null && amount != null && currency != null) {
-            AppDatabase.getDatabaseInstance().operationDao().insert(DataEntry(
+            AppDatabase.getDatabaseInstance().operationDao().insertEntry(DataEntry(
                     null,
                     Type.valueOf(type),
                     BigDecimal(amount).setScale(2, RoundingMode.HALF_EVEN),

@@ -17,7 +17,7 @@ class MainViewModel : ViewModel() {
     val mainPieData: MutableLiveData<PieDataSet> = MutableLiveData()
     val monthPieData: MutableLiveData<PieDataSet> = MutableLiveData()
 
-    fun addOperation(entry: DataEntry) {
+    fun addEntry(entry: DataEntry) {
         launch(CommonPool) {
             TrackerApp.sRepository.insertEntry(entry)
         }
@@ -35,12 +35,12 @@ class MainViewModel : ViewModel() {
             val monthHist: List<DataEntry>
             when(accountId){
                 R.id.total_account -> {
-                    hist = TrackerApp.sRepository.getDataEntries()
-                    monthHist = TrackerApp.sRepository.getAllBetweenDate()
+                    hist = TrackerApp.sRepository.getAllEntry()
+                    monthHist = TrackerApp.sRepository.getAllEntryBetweenDate()
                 }
                 else ->{
                      hist = TrackerApp.sRepository.getOperation(accountId)
-                     monthHist = TrackerApp.sRepository.getOperationBetweenDate(accountId)
+                     monthHist = TrackerApp.sRepository.getAllEntryBetweenDateAccount(accountId)
                 }
             }
             monthHistory.postValue(monthHist)
@@ -50,7 +50,7 @@ class MainViewModel : ViewModel() {
         }
     }
 
-    fun getLiveBase(): LiveData<List<DataEntry>> = TrackerApp.sRepository.getLiveBase()
+    fun getLiveBaseEntry(): LiveData<List<DataEntry>> = TrackerApp.sRepository.getLiveBaseEntry()
 
     fun getAllTemplates():LiveData<List<TemplateEntry>> = TrackerApp.sRepository.getAllTemplates()
 
@@ -65,9 +65,9 @@ class MainViewModel : ViewModel() {
         monthPieData.postValue(pieDataSet)
     }
 
-    fun deleteItem(dataEntry: DataEntry) {
+    fun deleteEntry(dataEntry: DataEntry) {
         launch(CommonPool) {
-            TrackerApp.sRepository.deleteItem(dataEntry)
+            TrackerApp.sRepository.deleteEntry(dataEntry)
             updateHistory(dataEntry.accountId)
         }
     }

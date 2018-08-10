@@ -11,28 +11,28 @@ import java.util.*
 @Dao
 interface OperationDao {
     @Query("SELECT * FROM entrys  WHERE currency = :currency ")
-    fun getAll(currency: Currency): List<DataEntry>
+    fun getAllEntry(currency: Currency): List<DataEntry>
 
     @Query("SELECT * FROM entrys  WHERE currency = :currency ")
-    fun getLiveBase(currency: Currency): LiveData<List<DataEntry>>
+    fun getLiveBaseEntry(currency: Currency): LiveData<List<DataEntry>>
 
     @Insert(onConflict = REPLACE)
-    fun insert(dataEntry: DataEntry)
+    fun insertEntry(dataEntry: DataEntry)
 
     @Query("DELETE from entrys")
-    fun deleteAll()
+    fun deleteAllEntries()
 
     @Query("SELECT * FROM entrys WHERE currency = :currency AND accountid = :accountid")
     fun getOperation(currency: Currency, accountid:Int): List<DataEntry>
 
     @Query("SELECT * FROM entrys WHERE date BETWEEN :from and :to AND currency = :currency AND accountid = :accountid")
-    fun getOperationBetweenDateAccount(from:Date, to:Date, currency: Currency, accountid: Int): List<DataEntry>
+    fun getAllEntryBetweenDateAccount(from:Date, to:Date, currency: Currency, accountid: Int): List<DataEntry>
 
     @Query("SELECT * FROM entrys WHERE date BETWEEN :from and :to AND currency = :currency ")
-    fun getAllBetweenDate(from:Date, to:Date, currency: Currency): List<DataEntry>
+    fun getAllEntryBetweenDate(from:Date, to:Date, currency: Currency): List<DataEntry>
 
     @Delete
-    fun deleteItem(dataEntry: DataEntry)
+    fun deleteEntry(dataEntry: DataEntry)
 
     @Query("SELECT * FROM templates WHERE currency = :currency")
     fun getAllTemplates(currency: Currency): LiveData<List<TemplateEntry>>

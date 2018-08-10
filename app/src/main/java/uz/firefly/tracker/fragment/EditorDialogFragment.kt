@@ -87,7 +87,7 @@ class EditorFragment : BaseFragment() {
 
 
     fun createOperation(dataEntry: DataEntry) {
-        model.addOperation(dataEntry)
+        model.addEntry(dataEntry)
     }
 
     fun createTemplate(templateEntry: TemplateEntry) {

@@ -54,27 +54,27 @@ class Repository(context: Context) {
             Account(R.drawable.ic_credit_card_black_24dp, R.string.card, R.id.card_account),
             Account(R.drawable.ic_web_black_24dp, R.string.yandex_money, R.id.yamoney_account))
 
-    fun getDataEntries(): List<DataEntry> =
-            database.operationDao().getAll(getCurrencyState())
+    fun getAllEntry(): List<DataEntry> =
+            database.operationDao().getAllEntry(getCurrencyState())
 
-    fun getLiveBase(): LiveData<List<DataEntry>> = database.operationDao().getLiveBase(getCurrencyState())
+    fun getLiveBaseEntry(): LiveData<List<DataEntry>> = database.operationDao().getLiveBaseEntry(getCurrencyState())
 
-    fun insertEntry(entry: DataEntry) = database.operationDao().insert(entry)
+    fun insertEntry(entry: DataEntry) = database.operationDao().insertEntry(entry)
 
-    fun getOperationBetweenDate(accountId: Int): List<DataEntry> {
+    fun getAllEntryBetweenDateAccount(accountId: Int): List<DataEntry> {
         val list = getDateFromTo()
-        return database.operationDao().getOperationBetweenDateAccount(list[FROM], list[TO], getCurrencyState(), accountId)
+        return database.operationDao().getAllEntryBetweenDateAccount(list[FROM], list[TO], getCurrencyState(), accountId)
     }
 
-    fun getAllBetweenDate(): List<DataEntry> {
+    fun getAllEntryBetweenDate(): List<DataEntry> {
         val list = getDateFromTo()
-        return database.operationDao().getAllBetweenDate(list[FROM], list[TO], getCurrencyState())
+        return database.operationDao().getAllEntryBetweenDate(list[FROM], list[TO], getCurrencyState())
     }
 
     fun getOperation(accountId: Int): List<DataEntry> =
             database.operationDao().getOperation(getCurrencyState(), accountId)
 
-    fun deleteItem(dataEntry: DataEntry) = database.operationDao().deleteItem(dataEntry)
+    fun deleteEntry(dataEntry: DataEntry) = database.operationDao().deleteEntry(dataEntry)
 
     fun deleteTemplate(templateEntry: TemplateEntry) = database.operationDao().deleteTemplate(templateEntry)
 

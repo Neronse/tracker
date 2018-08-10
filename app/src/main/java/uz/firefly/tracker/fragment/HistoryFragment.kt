@@ -74,7 +74,7 @@ class HistoryFragment : BaseFragment() {
                 }
             }
             yesButton {
-                model.deleteItem(dataEntry)
+                model.deleteEntry(dataEntry)
             }
             noButton {  }
         }.show()
